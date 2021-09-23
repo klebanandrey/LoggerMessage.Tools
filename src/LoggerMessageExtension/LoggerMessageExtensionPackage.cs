@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Task = System.Threading.Tasks.Task;
 using LoggerMessageExtension.Options;
+using LoggerMessageExtension.Services;
 
 namespace LoggerMessageExtension
 {

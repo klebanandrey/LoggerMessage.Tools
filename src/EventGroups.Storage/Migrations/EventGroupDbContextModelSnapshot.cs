@@ -26,7 +26,7 @@ namespace EventGroups.Storage.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("EventGroupAbbr")
+                    b.Property<string>("Abbreviation")
                         .HasMaxLength(3)
                         .HasColumnType("TEXT");
 

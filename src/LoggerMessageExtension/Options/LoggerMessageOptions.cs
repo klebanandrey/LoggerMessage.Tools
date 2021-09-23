@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.Shell;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using LoggerMessageExtension.Services;
 
 namespace LoggerMessageExtension.Options
 {

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Resources;
-using EventGroups.Common;
+using LoggerMessages.Common;
 using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
 

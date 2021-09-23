@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using LoggerMessageExtension.Scopes;
+using LoggerMessages.Common;
 using Microsoft.CodeAnalysis;
 
-namespace LoggerMessageExtension
+namespace LoggerMessageExtension.Services
 {
     public interface IEventGroupService
     {
@@ -16,7 +13,7 @@ namespace LoggerMessageExtension
 
         Task<bool> IsAbbrExistAsync(string abbr);
 
-        Task<IEnumerable<EventGroupViewObject>> GetEventGroupsAsync();
+        Task<IEnumerable<IEventGroup>> GetEventGroupsAsync();
 
         Task<bool> TryAddEventGroupAsync(EventGroupViewObject newEventGroupViewObject);
     }

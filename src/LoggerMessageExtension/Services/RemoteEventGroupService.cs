@@ -1,5 +1,4 @@
-﻿using LoggerMessageExtension.Scopes;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +8,7 @@ using LoggerMessageExtension.EventGroupsClientService;
 using System.Net.Http.Headers;
 using System.IdentityModel.Tokens.Jwt;
 using EventGroups.Contract;
+using LoggerMessages.Common;
 
 namespace LoggerMessageExtension.Services
 {
@@ -23,12 +23,12 @@ namespace LoggerMessageExtension.Services
             try
             {
                 var httpClient = new System.Net.Http.HttpClient();
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", configuration[EventGroups.Common.Constants.ApiKey].ToString());
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", configuration[Constants.ApiKey].ToString());
 
                 var handler = new JwtSecurityTokenHandler();
-                var jwtSecurityToken = handler.ReadJwtToken(configuration[EventGroups.Common.Constants.ApiKey].ToString());
+                var jwtSecurityToken = handler.ReadJwtToken(configuration[Constants.ApiKey].ToString());
                 _userId = Guid.Parse(jwtSecurityToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti).Value);
-                _client = new EventGroupsClient(configuration[EventGroups.Common.Constants.ServiceUrl].ToString(), httpClient);
+                _client = new EventGroupsClient(configuration[Constants.ServiceUrl].ToString(), httpClient);
                 _connected = true;
             }
             catch (Exception)
@@ -41,7 +41,7 @@ namespace LoggerMessageExtension.Services
 
         public bool Connected => _connected;
 
-        public async Task<IEnumerable<EventGroupViewObject>> GetEventGroupsAsync()
+        public async Task<IEnumerable<IEventGroup>> GetEventGroupsAsync()
         {
             if (!Connected)
                 return null;

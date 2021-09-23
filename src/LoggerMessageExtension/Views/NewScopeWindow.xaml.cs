@@ -2,8 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 using LoggerMessageExtension.Exceptions;
-using LoggerMessageExtension.Scopes;
-using EventGroups.Common;
+using LoggerMessages.Common;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 

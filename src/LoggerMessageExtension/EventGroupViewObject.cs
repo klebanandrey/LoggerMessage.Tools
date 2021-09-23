@@ -1,10 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
-using System.IO;
+﻿using LoggerMessages.Common;
 
-namespace LoggerMessageExtension.Scopes
+namespace LoggerMessageExtension
 {
-    public class EventGroupViewObject
+    public class EventGroupViewObject : IEventGroup
     {
         public string Abbreviation { get; set; }
         public string Description { get; set; }

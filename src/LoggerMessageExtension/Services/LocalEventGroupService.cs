@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using LoggerMessageExtension.Services;
+using LoggerMessages.Common;
 using Newtonsoft.Json;
-using Constants = EventGroups.Common.Constants;
+using Constants = LoggerMessages.Common.Constants;
 
-namespace LoggerMessageExtension.Scopes
+namespace LoggerMessageExtension.Services
 {
     public class LocalEventGroupService : IEventGroupService
     {
@@ -28,18 +28,18 @@ namespace LoggerMessageExtension.Scopes
 
         public Task<bool> IsAbbrExistAsync(string abbr)
         {
-            return Task.FromResult(_groups.Any(e => e.EventGroupAbbr == abbr));
+            return Task.FromResult(_groups.Any(e => e.Abbreviation == abbr));
         }
 
-        public Task<IEnumerable<EventGroupViewObject>> GetEventGroupsAsync()
+        public Task<IEnumerable<IEventGroup>> GetEventGroupsAsync()
         {
             return Task.FromResult(_groups
-                    .OrderBy(e => e.EventGroupAbbr)
+                    .OrderBy(e => e.Abbreviation)
                     .Select(e => new EventGroupViewObject()
                     {
-                        Abbreviation = e.EventGroupAbbr,
+                        Abbreviation = e.Abbreviation,
                         Description = e.Description
-                    }).AsEnumerable());
+                    }).Cast<IEventGroup>());
         }
 
         public async Task<bool> TryAddEventGroupAsync(EventGroupViewObject newEventGroupViewObject)
@@ -49,7 +49,7 @@ namespace LoggerMessageExtension.Scopes
 
             _groups.Add(new EventGroupLocal()
             {
-                EventGroupAbbr = newEventGroupViewObject.Abbreviation,
+                Abbreviation = newEventGroupViewObject.Abbreviation,
                 Description = newEventGroupViewObject.Description
             });
 

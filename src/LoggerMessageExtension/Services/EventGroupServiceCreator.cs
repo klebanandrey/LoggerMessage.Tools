@@ -1,10 +1,9 @@
 ﻿using System;
 using EventGroups.Roslyn;
-using LoggerMessageExtension.Scopes;
-using LoggerMessageExtension.Services;
 using Microsoft.CodeAnalysis;
+using Constants = LoggerMessages.Common.Constants;
 
-namespace LoggerMessageExtension
+namespace LoggerMessageExtension.Services
 {
     public static class EventGroupServiceCreator
     {
@@ -14,7 +13,7 @@ namespace LoggerMessageExtension
             {
                 var configuration = workspace.GetConfiguration();
 
-                if (!bool.Parse(configuration[EventGroups.Common.Constants.IsShared].ToString()))
+                if (!bool.Parse(configuration[Constants.IsShared].ToString()))
                 {
                     return new LocalEventGroupService(workspace.GetConfigFolder());
                 }

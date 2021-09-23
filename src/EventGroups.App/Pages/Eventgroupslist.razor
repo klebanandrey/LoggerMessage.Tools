@@ -11,7 +11,7 @@
     <AuthorizeView>
         <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" FilterMode="FilterMode.Advanced" PageSize="5" AllowPaging="true" AllowSorting="true" Data="@eventGroups" TItem="EventGroup" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
             <Columns>
-                <RadzenDataGridColumn TItem="EventGroup" Property="EventGroupAbbr" Title="ID" Frozen="true" Width="50px" TextAlign="TextAlign.Center" />
+                <RadzenDataGridColumn TItem="EventGroup" Property="Abbreviation" Title="ID" Frozen="true" Width="50px" TextAlign="TextAlign.Center" />
                 <RadzenDataGridColumn TItem="EventGroup" Property="Description" Title="Description" />
                 <RadzenDataGridColumn TItem="EventGroup" Property="Solution.Id" Title="Solution" />
             </Columns>

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using EventGroups.Common;
 using LoggerMessages.Common;
 
 namespace EventGroups.Storage.Model
 {
-    public class EventGroup : ILoggerGroup
+    public class EventGroup : IEventGroup
     {
         public EventGroup()
         {
@@ -16,7 +15,7 @@ namespace EventGroups.Storage.Model
         public Guid Oid { get; set; }
 
         [MaxLength(Constants.AbbrLength)]
-        public string EventGroupAbbr { get; set; }
+        public string Abbreviation { get; set; }
 
         [MaxLength(500)]
         public string Description { get; set; }

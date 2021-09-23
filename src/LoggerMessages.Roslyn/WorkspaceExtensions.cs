@@ -27,13 +27,13 @@ namespace EventGroups.Roslyn
 
         private static string GetConfigPath(this Workspace workspace)
         {
-            return Path.Combine(workspace.GetConfigFolder(), Common.Constants.ConfigFileName);
+            return Path.Combine(workspace.GetConfigFolder(), LoggerMessages.Common.Constants.ConfigFileName);
         }
 
         public static string GetConfigFolder(this Workspace workspace)
         {
             return Path.Combine(Path.GetDirectoryName(workspace.CurrentSolution.FilePath),
-                Common.Constants.SettingsFolder);
+                LoggerMessages.Common.Constants.SettingsFolder);
         }
 
         private static bool CreateDefaultConfig(this Workspace workspace)
@@ -42,9 +42,9 @@ namespace EventGroups.Roslyn
             {
                 var defaultConfiguration = new Dictionary<string, object>()
                 {
-                    {Common.Constants.IsShared, false},
-                    {Common.Constants.ServiceUrl, ""},
-                    {Common.Constants.ApiKey, ""}
+                    {LoggerMessages.Common.Constants.IsShared, false},
+                    {LoggerMessages.Common.Constants.ServiceUrl, ""},
+                    {LoggerMessages.Common.Constants.ApiKey, ""}
                 };
 
                 var str = JsonSerializer.Serialize(defaultConfiguration, defaultConfiguration.GetType(), jsonSettings);

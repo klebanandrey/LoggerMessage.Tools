@@ -44,7 +44,7 @@ namespace EventGroups.Api.Controllers
             return new EventGroupDTO()
             {
                 Description = eventGroup.Description,
-                EventGroupAbbr = eventGroup.EventGroupAbbr,
+                EventGroupAbbr = eventGroup.Abbreviation,
                 SolutionId = eventGroup.SolutionId,
                 SolutionName = eventGroup.Solution.Name
             };
@@ -55,7 +55,7 @@ namespace EventGroups.Api.Controllers
             return new EventGroup()
             {
                 Description = dto.Description,
-                EventGroupAbbr = dto.EventGroupAbbr,
+                Abbreviation = dto.EventGroupAbbr,
                 SolutionId = dto.SolutionId
             };
         }
@@ -88,7 +88,7 @@ namespace EventGroups.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(EventGroupDTO))]
         public async Task<ActionResult<EventGroupDTO>> Find(Guid solutionId, string abbr)
         {
-            var eventGroup = await _context.EventGroups.FirstOrDefaultAsync(g => g.EventGroupAbbr == abbr
+            var eventGroup = await _context.EventGroups.FirstOrDefaultAsync(g => g.Abbreviation == abbr
                 && g.SolutionId == solutionId);
 
             if (eventGroup == null)
@@ -156,7 +156,7 @@ namespace EventGroups.Api.Controllers
             }                        
 
             var exist = await _context.EventGroups.FirstOrDefaultAsync(g =>
-                g.SolutionId == solution.Id && g.EventGroupAbbr == eventGroup.EventGroupAbbr);
+                g.SolutionId == solution.Id && g.Abbreviation == eventGroup.EventGroupAbbr);
             if (exist != null)
                 return Ok(exist);
 

@@ -2,11 +2,10 @@
 using System.Linq;
 using System.Windows;
 using LoggerMessageExtension.Exceptions;
-using LoggerMessageExtension.Scopes;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
-using Constants = EventGroups.Common.Constants;
+using Constants = LoggerMessages.Common.Constants;
 
 namespace LoggerMessageExtension.Views
 {

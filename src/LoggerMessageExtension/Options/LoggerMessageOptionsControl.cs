@@ -1,11 +1,11 @@
 ﻿using LoggerMessageExtension.EventGroupsClientService;
-using EventGroups.Common;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Windows.Forms;
+using LoggerMessages.Common;
 
 namespace LoggerMessageExtension.Options
 {
@@ -49,7 +49,7 @@ namespace LoggerMessageExtension.Options
         private void bLogin_Click(object sender, EventArgs e)
         {
             var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Configuration[EventGroups.Common.Constants.ApiKey].ToString());
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.Configuration[Constants.ApiKey].ToString());
 
             var apiClient = new EventGroupsClient(tbServiceUrl.Text, httpClient);
 

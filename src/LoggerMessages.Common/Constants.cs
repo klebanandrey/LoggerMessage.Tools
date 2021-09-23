@@ -1,4 +1,4 @@
-﻿namespace EventGroups.Common
+﻿namespace LoggerMessages.Common
 {
     public class Constants
     {
