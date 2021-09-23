@@ -1,0 +1,35 @@
+﻿@using EventGroups.App.Services
+
+@inject IApiKeyService _apiKeyService
+@inject ClipboardService _clipboardService   
+
+<AuthorizeView>
+    <RadzenButton Click=@(args => OnClickGenerateApi(@context.User.Identity.Name)) Text="Generate new ApiKey" Style="margin-bottom: 20px; width: 300px" ButtonStyle="ButtonStyle.Secondary"/>
+    <RadzenButton Click=@CopyToClipboard Style="width: 40px" Disabled=@clipboardButtonDisabled Icon="content_copy" ButtonStyle="ButtonStyle.Light"/>
+    <h1/>
+    <RadzenTextArea Change=@(TextAreaChanged) Visible="true" ReadOnly="true" @bind-Value="apiKey" Style="height: 150px; width: 800px"/>
+</AuthorizeView>
+
+@code {
+    string apiKey;
+    bool clipboardButtonDisabled = true;
+
+    async Task OnClickGenerateApi(string userName)
+    {
+        apiKey = await _apiKeyService.GenerateApiKey(userName);
+        clipboardButtonDisabled = false;
+    }
+
+    async Task CopyToClipboard()
+    {
+        await _clipboardService.WriteTextAsync(apiKey);
+        clipboardButtonDisabled = true;
+    }
+
+    async Task TextAreaChanged(string value)
+    {
+        var existValue = await _clipboardService.ReadTextAsync();
+
+        clipboardButtonDisabled = String.Equals(value, existValue);
+    }
+}

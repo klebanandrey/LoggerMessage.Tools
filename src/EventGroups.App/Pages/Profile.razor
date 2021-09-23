@@ -1,0 +1,19 @@
+﻿@page "/profile"
+@layout MainLayout
+
+@attribute [Authorize]
+
+<RadzenContent Container="main">
+    <ChildContent>
+        <RadzenTabs>
+            <Tabs>
+                <RadzenTabsItem Text="Api key">
+                    <ApiKey/>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Personal">
+                    <Account/>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>        
+    </ChildContent>
+</RadzenContent>

@@ -1,0 +1,113 @@
+﻿@using EventGroups.App.Services
+@using Microsoft.AspNetCore.Identity
+
+
+@inject IJSRuntime JSRuntime;
+@inject NavigationManager UriHelper;
+@inject DialogService DialogService;
+@inject SecurityService Security;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+
+<div class="row">
+    <div class="col-md-12">
+        <RadzenTemplateForm Method="post" Action="account/changepassword" TItem="IdentityUser" Data="@(user)" Visible="@(user != null)">
+            <ChildContent>
+                <div style="margin-bottom: 1rem" class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Component="OldPassword" style="width: 100%" Text="Old Password" />
+                    </div>
+                    <div class="col-md-9">
+                        <RadzenPassword style="display: block; width: 100%" Name="OldPassword" />
+                        <RadzenRequiredValidator Component="OldPassword" style="position: absolute" Text="Password is required" />
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem" class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Component="NewPassword" style="width: 100%" Text="New Password" />
+                    </div>
+                    <div class="col-md-9">
+                        <RadzenPassword style="display: block; width: 100%" Name="NewPassword" />
+                        <RadzenRequiredValidator Component="NewPassword" style="position: absolute" Text="Password is required" />
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem" class="row">
+                    <div class="col-md-3">
+                        <RadzenLabel Component="ConfirmPassword" style="width: 100%" Text="Confirm password" />
+                    </div>
+                    <div class="col-md-9">
+                        <RadzenPassword style="display: block; width: 100%" Name="ConfirmPassword" />
+                        <RadzenRequiredValidator Component="ConfirmPassword" style="position: absolute" Text="ConfirmPassword is required" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col offset-sm-3">
+                        <RadzenButton ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit" Icon="save" Text="Change password" />
+                        <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Cancel" Click="@Button2Click" />
+                    </div>
+                </div>
+            </ChildContent>
+        </RadzenTemplateForm>
+    </div>
+</div>
+
+@code {
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, dynamic> Attributes { get; set; }
+
+    IdentityUser _user;
+
+    protected IdentityUser user
+    {
+        get { return _user; }
+        set
+        {
+            if (!object.Equals(_user, value))
+            {
+                var args = new PropertyChangedEventArgs() { Name = "user", NewValue = value, OldValue = _user };
+                _user = value;
+                OnPropertyChanged(args);
+                Reload();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Security.InitializeAsync(AuthenticationStateProvider);
+        if (!Security.IsAuthenticated())
+        {
+            UriHelper.NavigateTo("Login", true);
+        }
+        else
+        {
+            await Load();
+        }
+    }
+
+    protected async Task Load()
+    {
+        if (Security.User != null)
+        {
+            var securityGetUserByIdResult = await Security.GetUserById($"{Security.User.Id}");
+            user = securityGetUserByIdResult;
+        }
+    }
+
+
+    public void OnPropertyChanged(PropertyChangedEventArgs args)
+    {
+    }
+
+    public void Reload()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task Button2Click(MouseEventArgs args)
+    {
+        DialogService.Close();
+        await JSRuntime.InvokeAsync<string>("window.history.back");
+    }
+
+}

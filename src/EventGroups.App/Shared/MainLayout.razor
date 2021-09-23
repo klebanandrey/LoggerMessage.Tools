@@ -1,0 +1,106 @@
+﻿@inherits LayoutComponentBase
+
+@using EventGroups.App.Services
+
+@inject DialogService DialogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SecurityService Security
+@inject NavMenuService _navMenuService
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenTooltip />
+<RadzenContextMenu />
+
+<RadzenHeader>
+    <ChildContent>
+        <div class="row justify-content-start align-items-center">
+            <div class="col-6 d-flex align-items-center">
+                <RadzenSidebarToggle Click="@SidebarToggleClick"/>
+                <RadzenImage Path="logo.svg" Style="width:45px"/>
+                <RadzenLabel Text="Logger messages event groups"/>
+            </div>
+            <div class="col-6 text-right align-items-center">
+                <LoginDisplay/>
+            </div>
+        </div>
+    </ChildContent>
+</RadzenHeader>
+<RadzenBody @ref="body0" @bind-Expanded="@bodyExpanded">
+    <ChildContent>
+        <RadzenContentContainer Name="main">
+            @Body
+        </RadzenContentContainer>
+    </ChildContent>
+</RadzenBody>
+<RadzenSidebar @ref="@sidebar0" @bind-Expanded="@sidebarExpanded">
+    <ChildContent>
+        <RadzenPanelMenu>
+            @foreach (var category in _menuItems)
+            {
+                <RadzenPanelMenuItem @bind-Expanded="@category.Expanded" Text="@category.Name" Path="@category.Path" Icon="@category.Icon">
+                    @if (category.Children != null)
+                    {
+                        @foreach (var menuItem in category.Children)
+                        {
+                            if (menuItem.Children != null)
+                            {
+                                <RadzenPanelMenuItem Text="@menuItem.Name" @bind-Expanded="@menuItem.Expanded" Icon="@menuItem.Icon">
+                                    @foreach (var child in menuItem.Children)
+                                    {
+                                        <RadzenPanelMenuItem Text="@child.Name" Path="@child.Path"/>
+                                    }
+                                </RadzenPanelMenuItem>
+                            }
+                            else
+                            {
+                                <RadzenPanelMenuItem Text="@menuItem.Name" Path="@menuItem.Path" Icon="@menuItem.Icon"/>
+                            }
+                        }
+                    }
+                </RadzenPanelMenuItem>
+            }
+        </RadzenPanelMenu>
+    </ChildContent>
+</RadzenSidebar>
+<RadzenFooter style="display: block; position: absolute">
+    <ChildContent>
+        <RadzenLabel style="text-align: left; vertical-align: baseline" Text="EventGroups, Copyright Ⓒ 2021"/>
+    </ChildContent>
+</RadzenFooter>
+
+@code
+{
+    protected RadzenBody body0;
+    protected RadzenSidebar sidebar0;
+    protected IEnumerable<MenuItem> _menuItems;
+    protected bool sidebarExpanded = true;
+    protected bool bodyExpanded = false;
+
+    private void Authenticated()
+    {
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Security != null)
+        {
+            Security.Authenticated += Authenticated;
+
+            await Security.InitializeAsync(AuthenticationStateProvider);
+        }
+        await Load();
+    }
+
+    protected async Task Load()
+    {
+        _menuItems = _navMenuService.MenuItems;
+    }
+
+    protected async Task SidebarToggleClick(dynamic args)
+    {
+        sidebarExpanded = !sidebarExpanded;
+        bodyExpanded = !bodyExpanded;
+    }
+}

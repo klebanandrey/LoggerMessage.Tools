@@ -1,0 +1,54 @@
+﻿@page "/login"
+@layout LoginLayout
+
+@using Radzen
+@using Radzen.Blazor
+@using Microsoft.AspNetCore.Identity;
+@using Microsoft.AspNetCore.Authorization
+
+@inject NavigationManager UriHelper;
+@inject DialogService DialogService;
+@inject NotificationService NotificationService;
+
+
+<RadzenContent Container="main">
+    <ChildContent>
+        <RadzenHeading Size="H1" Text="Login"/>
+        <div class="row">
+            <div class="col-md-12">
+                <RadzenTemplateForm Action="account/login" Data="@("login")" Method="post">
+                    <ChildContent>
+                        <RadzenLogin AllowResetPassword="false" Register="@RegisterClick"/>
+                    </ChildContent>
+                </RadzenTemplateForm>
+            </div>
+        </div>
+    </ChildContent>
+</RadzenContent>
+
+
+@code
+{
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, dynamic> Attributes { get; set; }
+
+    private async Task RegisterClick()
+    {
+        await DialogService.OpenAsync<RegisterUser>("Register User", null);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var error = System.Web.HttpUtility.ParseQueryString(new Uri(UriHelper.ToAbsoluteUri(UriHelper.Uri).ToString()).Query).Get("error");
+
+        if (!string.IsNullOrEmpty(error))
+        {
+            NotificationService.Notify(new NotificationMessage(){ Severity = NotificationSeverity.Error,Summary = $"Error",Detail = $"{error}" });
+        }
+    }
+}

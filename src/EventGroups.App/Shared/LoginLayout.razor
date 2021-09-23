@@ -1,0 +1,47 @@
+﻿@inherits LayoutComponentBase
+
+@using EventGroups.App.Services
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SecurityService Security
+
+<RadzenDialog />
+<RadzenNotification />
+<RadzenTooltip />
+<RadzenContextMenu />
+
+<RadzenBody @ref="body0" style="margin-left: 0px" Expanded="true">
+    <ChildContent>
+        <div class="row justify-content-center">
+            <div class="justify-content-center col-xl-5 col-md-7">
+                <RadzenCard style="margin-top: 8rem">
+                    <ChildContent>
+                        <RadzenContentContainer Name="main">
+                            @Body
+                        </RadzenContentContainer>
+                    </ChildContent>
+                </RadzenCard>
+            </div>
+        </div>
+    </ChildContent>
+</RadzenBody>
+
+@code
+{
+    protected RadzenBody body0;
+
+    private void Authenticated()
+    {
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Security != null)
+        {
+            Security.Authenticated += Authenticated;
+
+            await Security.InitializeAsync(AuthenticationStateProvider);
+        }
+    }
+}

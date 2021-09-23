@@ -1,0 +1,29 @@
+﻿@page "/solutionslist"
+
+@using Microsoft.EntityFrameworkCore
+@using EventGroups.Storage
+@using EventGroups.Storage.Model
+
+@inject EventGroupDbContext _dbContext
+
+<h1>Solutions</h1>
+
+<AuthorizeView>
+    <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" FilterMode="FilterMode.Advanced" PageSize="5" AllowPaging="true" AllowSorting="true" Data="@solutions" TItem="Solution" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+        <Columns>
+            <RadzenDataGridColumn TItem="Solution" Property="Id" Filterable="false" Title="ID" Frozen="true" Width="150px" TextAlign="TextAlign.Center" />
+            <RadzenDataGridColumn TItem="Solution" Property="Name" Title="Filename" />
+            <RadzenDataGridColumn TItem="Solution" Property="Owner" Title="Owner" />
+        </Columns>
+    </RadzenDataGrid>
+</AuthorizeView>
+
+
+    @code {
+        IEnumerable<Solution> solutions;
+
+        protected override void OnInitialized()
+        {
+            solutions = _dbContext.Solutions.Include(s => s.Owner);
+        }
+    }

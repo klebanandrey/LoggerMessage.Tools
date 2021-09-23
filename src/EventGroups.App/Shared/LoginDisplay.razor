@@ -1,0 +1,45 @@
+﻿@using EventGroups.App.Pages
+@using EventGroups.App.Services
+
+@inject DialogService DialogService;
+@inject SecurityService Security;
+
+<AuthorizeView>
+    <Authorized>
+        <RadzenProfileMenu Visible="@(Security.IsAuthenticated())" Click="@ProfileLogoutClick">
+            <ChildContent>
+                <RadzenProfileMenuItem Path="profile" Icon="settings" Text="Profile" Visible="@Security.IsInRole(new string[]{"Authenticated"})"/>
+                <RadzenProfileMenuItem Text="Logout" Value="Logout" Icon="logout"/>
+            </ChildContent>
+            <Template>
+                <RadzenGravatar Email="@(Security.User?.UserName)"/>
+            </Template>
+        </RadzenProfileMenu>
+    </Authorized>
+    <NotAuthorized>
+        <RadzenProfileMenu Visible="@(!Security.IsAuthenticated())" Click="@ProfileLoginClick">
+            <ChildContent>
+                <RadzenProfileMenuItem Text="Login" Value="Login" Icon="login"/>
+            </ChildContent>
+            <Template>
+                <RadzenIcon Icon="account_circle"/>
+            </Template>
+        </RadzenProfileMenu>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    protected async Task ProfileLoginClick(dynamic args)
+    {
+        await DialogService.OpenAsync<Login>("Login", null);
+    }
+
+    protected async Task ProfileLogoutClick(dynamic args)
+    {
+        if (args.Value == "Logout")
+        {
+            await Security.Logout();
+        }
+    }
+}

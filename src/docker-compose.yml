@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  eventgroups.app:
+    image: ${DOCKER_REGISTRY-}eventgroupsapp
+    volumes:
+        - "./data:/db"
+        - "${USERPROFILE}/.aspnet/https:/https/"
+    ports:
+        - 5001:443
+        - 5000:80
+    build:
+      context: .
+      dockerfile: EventGroups.App/Dockerfile      
+    environment:
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=test
+        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+        - ConnectionStrings:ConnectionString=Data Source=/db/database.dll    
+
+  eventgroups.webapi:
+    image: ${DOCKER_REGISTRY-}eventgroupswebapi
+    volumes:
+        - "./data:/db"
+        - "${USERPROFILE}/.aspnet/https:/https/"
+    ports:
+        - 5101:443
+        - 5100:80
+    build:
+      context: .
+      dockerfile: EventGroups.WebApi/Dockerfile
+    environment:
+        - ASPNETCORE_Kestrel__Certificates__Default__Password=test
+        - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+        - ConnectionStrings:ConnectionString=Data Source=/db/database.dll

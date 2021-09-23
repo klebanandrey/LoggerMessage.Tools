@@ -1,0 +1,108 @@
+﻿@page "/registeruser"
+@layout MainLayout
+@using Microsoft.AspNetCore.Identity;
+@using EventGroups.App.Services
+@using PropertyChangedEventArgs = EventGroups.App.Services.PropertyChangedEventArgs
+
+@inject IJSRuntime JSRuntime;
+@inject DialogService DialogService;
+@inject SecurityService Security;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+
+<RadzenContent Container="main">
+    <ChildContent>
+        <div class="row">
+            <div class="col-md-12">
+                <RadzenTemplateForm Method="post" Action="account/register" Data="@user" TItem="IdentityUser" Visible="@(user != null)">
+                    <ChildContent>
+                        <div style="margin-bottom: 1rem" class="row">
+                            <div class="col-md-3">
+                                <RadzenLabel Component="userName" style="width: 100%" Text="Email"/>
+                            </div>
+                            <div class="col-md-9">
+                                <RadzenTextBox style="display: block; width: 100%" @bind-Value="@(user.UserName)" Name="UserName"/>
+                                <RadzenRequiredValidator Component="UserName" style="position: absolute" Text="Email is required"/>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1rem" class="row">
+                            <div class="col-md-3">
+                                <RadzenLabel Component="Password" style="width: 100%" Text="Password"/>
+                            </div>
+                            <div class="col-md-9">
+                                <RadzenPassword style="display: block; width: 100%" @bind-Value="@(password)" Name="Password"/>
+                                <RadzenRequiredValidator Component="Password" style="position: absolute" Text="Password is required"/>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1rem" class="row">
+                            <div class="col-md-3">
+                                <RadzenLabel Component="ConfirmPassword" style="width: 100%" Text="Confirm password"/>
+                            </div>
+                            <div class="col-md-9">
+                                <RadzenPassword style="display: block; width: 100%" @bind-Value="@(confirmPassword)" Name="ConfirmPassword"/>
+                                <RadzenRequiredValidator Component="ConfirmPassword" style="position: absolute" Text="ConfirmPassword is required"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col offset-sm-3">
+                                <RadzenButton ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit" Icon="save" Text="Register"/>
+                                <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Cancel" Click="@CancelClick"/>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </RadzenTemplateForm>
+            </div>
+        </div>
+    </ChildContent>
+</RadzenContent>
+
+@code
+{
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, dynamic> Attributes { get; set; }
+
+    public void Reload()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void OnPropertyChanged(PropertyChangedEventArgs args)
+    {
+    }
+
+    string password;
+    string confirmPassword;
+
+    IdentityUser _user;
+
+    protected IdentityUser user
+    {
+        get { return _user; }
+        set
+        {
+            if (!object.Equals(_user, value))
+            {
+                var args = new PropertyChangedEventArgs() {Name = "user", NewValue = value, OldValue = _user};
+                _user = value;
+                OnPropertyChanged(args);
+                Reload();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Security.InitializeAsync(AuthenticationStateProvider);
+        await Load();
+    }
+
+    protected async Task Load()
+    {
+        user = new IdentityUser();
+    }
+
+    protected async Task CancelClick(MouseEventArgs args)
+    {
+        DialogService.Close();
+        await JSRuntime.InvokeAsync<string>("window.history.back");
+    }
+}
