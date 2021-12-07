@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Windows;
 using LoggerMessageExtension.Exceptions;
-using Microsoft.CodeAnalysis;
+using LoggerMessages.Common;
+using LoggerMessages.Roslyn;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Constants = LoggerMessages.Common.Constants;
@@ -16,24 +17,36 @@ namespace LoggerMessageExtension.Views
     {        
         private readonly LoggerMessageExtensionPackage _package;
 
-        public LoggerMessageEditorWindow(LoggerMessageExtensionPackage package)
+        public LoggerMessage Message { get; set; }
+
+        public LoggerMessageEditorWindow(LoggerMessageExtensionPackage package, LoggerMessage message = null)
         {
             InitializeComponent();
             _package = package;
             ThreadHelper.JoinableTaskFactory.Run(async delegate
             {
                 ScopesComboBox.ItemsSource = await _package.EventGroupService.GetEventGroupsAsync();
-            });            
+            });
+
+            Message = message;
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             if (!_package.EventGroupService.Connected)
                 throw new FailedConnectionException();
+
+            Message.MessageTemplate = MessageTextBox.Text;
+            Message.Group = ScopesComboBox.SelectedItem as IEventGroup;
+
+            DialogResult = true;
+            Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
+            DialogResult = false;
+            Message = null;
             Close();
         }
 

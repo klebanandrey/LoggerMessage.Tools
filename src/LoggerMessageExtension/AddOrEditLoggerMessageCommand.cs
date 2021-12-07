@@ -3,11 +3,13 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
 using System.Globalization;
+using EnvDTE;
 using LoggerMessageExtension.Views;
 using EventGroups.Resx;
 using EventGroups.Roslyn;
 using Task = System.Threading.Tasks.Task;
 using LoggerMessageExtension.Exceptions;
+using LoggerMessages.Roslyn;
 
 namespace LoggerMessageExtension
 {
@@ -91,15 +93,9 @@ namespace LoggerMessageExtension
         private void Execute(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            string message = string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.GetType().FullName);
-            string title = "AddOrEditLoggerMessageCommand";
 
-            EnvDTE.DTE dte;
-            EnvDTE.Document activeDocument;
-
-            dte = (EnvDTE.DTE)this.ServiceProvider.GetServiceAsync(typeof(EnvDTE.DTE)).Result;
-            activeDocument = dte.ActiveDocument;
-            message = $"Called on {activeDocument.FullName}";
+            var dte = (EnvDTE.DTE)this.ServiceProvider.GetServiceAsync(typeof(EnvDTE.DTE)).Result;
+            var activeDocument = dte.ActiveDocument;
 
             var loggerPackage = this.package as LoggerMessageExtensionPackage;
 
@@ -107,20 +103,54 @@ namespace LoggerMessageExtension
                 throw new FailedConnectionException();
 
             var ws = loggerPackage.ImportedWorkspace;
-            var prj = ws
-                .GetProject(activeDocument.ProjectItem.ContainingProject.Name)
-                .GetOrCreateLoggerMessages(out _);
+            var currentProject = ws.GetProject(activeDocument.ProjectItem.ContainingProject.Name);
+            var currentDocument = currentProject.GetDocument(activeDocument.Name);
+            var textSelection = dte.ActiveWindow.Selection as EnvDTE.TextSelection;
+            loggerPackage.EventGroupService.Solution = ws.CurrentSolution;
+
+            var loggerMessage = LoggerMessage.Create("");
+
+            var lmEditor = new LoggerMessageEditorWindow(loggerPackage, loggerMessage);
+            var isCanceled = !lmEditor.ShowModal() ?? true;
+            if (isCanceled)
+                return;
+            
+            loggerMessage = lmEditor.Message;
+
+            var prj = currentDocument.Project
+                .GetOrCreateLoggerMessagesResx(out var resxDocument)
+                .GetOrCreateLoggerMessagesExtensions(out var extensionsDocument);
+
+            currentDocument = prj.GetDocument(currentDocument.Id)
+                .GetOrCreateLoggerVariable(textSelection.CurrentLine, out var loggerVariable)
+                .AddCall(loggerMessage, textSelection.CurrentLine, loggerVariable);
+
+
+            prj = currentDocument.Project;
 
             ws.TryApplyChanges(prj.Solution);
-
-            loggerPackage.EventGroupService.Solution = ws.CurrentSolution;           
-
-            var lmEditor = new LoggerMessageEditorWindow(loggerPackage);
-            lmEditor.ShowModal();
 
             prj = prj.GenerateResxClass();
             
             ws.TryApplyChanges(prj.Solution);
+
+
+
+
+
+
+            EnvDTE.TextSelection ts = dte.ActiveWindow.Selection as EnvDTE.TextSelection;
+            if (ts == null)
+                return;
+            EnvDTE.CodeFunction func = ts.ActivePoint.CodeElement[vsCMElement.vsCMElementFunction] as EnvDTE.CodeFunction;
+            if (func == null)
+                return;
+
+            string message = dte.ActiveWindow.Document.FullName + System.Environment.NewLine +
+                             "Line " + ts.CurrentLine + System.Environment.NewLine +
+                             func.FullName;
+
+            string title = "GetLineNo";
 
             // Show a message box to prove we were here
             VsShellUtilities.ShowMessageBox(

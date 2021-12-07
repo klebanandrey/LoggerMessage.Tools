@@ -1,5 +1,6 @@
 ﻿using System;
 using EventGroups.Roslyn;
+using LoggerMessages.Roslyn;
 using Microsoft.CodeAnalysis;
 using Constants = LoggerMessages.Common.Constants;
 

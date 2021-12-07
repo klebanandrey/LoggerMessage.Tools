@@ -30,9 +30,9 @@ namespace EventGroups.Resx
                     File.ReadAllText(tmpFilePath), new[] {Constants.LoggerMessagesResxFolderName});
             }
 
-            //var csproj = ProjectRootElement.Open(project.FilePath);
-            //AddItems(csproj, "EmbeddedResource", $"{Constants.LoggerMessagesResxFolderName}\\{Constants.LoggerMessagesResxFileName}");
-            //csproj.Save();
+            var csproj = ProjectRootElement.Open(project.FilePath);
+            AddItems(csproj, "EmbeddedResource", $"{Constants.LoggerMessagesResxFolderName}\\{Constants.LoggerMessagesResxFileName}");
+            csproj.Save();
             return document.Project;
         }
 
@@ -49,8 +49,27 @@ namespace EventGroups.Resx
         public static Project GenerateResxClass(this Project project)
         {
             var filePath = Path.Combine(Path.GetDirectoryName(project.FilePath), Constants.LoggerMessagesResxFolderName, Constants.LoggerMessagesResxFileName);
-            
-            Process.Start("resgen", $"{filePath} /str:cs,{Constants.DefaultNamespace}.Properties").WaitForExit();
+
+            try
+            {
+                var process = new Process();
+                process.StartInfo.FileName = "resgen";
+                process.StartInfo.Arguments = $"{filePath} /str:cs,{Constants.DefaultNamespace}.Properties";
+                //process.StartInfo.RedirectStandardError = true;
+                //process.StartInfo.RedirectStandardOutput = true;
+                //process.StartInfo.UseShellExecute = false;
+
+                process.ErrorDataReceived += Process_ErrorDataReceived;
+                process.OutputDataReceived += Process_OutputDataReceived1;
+
+                process.Start();
+                process.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
 
             var from = Path.Combine(Path.GetDirectoryName(filePath), Constants.LoggerMessagesFileName);
             var to = Path.Combine(Path.GetDirectoryName(filePath), $"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs");
@@ -69,6 +88,16 @@ namespace EventGroups.Resx
             File.Delete(toDelete);
 
             return project.AddDocument($"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs", File.ReadAllText(to)).Project;
+        }
+
+        private static void Process_OutputDataReceived1(object sender, DataReceivedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using LoggerMessageExtension.Services;
+using LoggerMessages.Roslyn;
 
 namespace LoggerMessageExtension.Options
 {

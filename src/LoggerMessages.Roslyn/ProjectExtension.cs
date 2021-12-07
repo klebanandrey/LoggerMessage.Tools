@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Linq;
-using EventGroups.Resx;
+using LoggerMessages.Roslyn;
 using Microsoft.CodeAnalysis;
 
 namespace EventGroups.Roslyn
 {
     public static class ProjectExtension
     {
-        public static Project GetOrCreateLoggerMessages(this Project project, out Document document)
+        public static Project GetOrCreateLoggerMessagesExtensions(this Project project, out Document document)
         {
             var existFile = project.Documents.FirstOrDefault(d =>
                 d.Name.Equals(Constants.LoggerMessagesFileName, StringComparison.OrdinalIgnoreCase));
@@ -15,13 +15,17 @@ namespace EventGroups.Roslyn
                 document = existFile;
             else
             {
-                project = project.GetOrCreateLoggerMessagesResx(out _);
                 var newDoc = project.AddDocument(Constants.LoggerMessagesFileName, Constants.DefaultContent,
                     new[] {Constants.LoggerMessagesFolderName});
                 document = newDoc.WithSyntaxRoot(newDoc.CreateLoggerMessageClass());
             }
 
             return document.Project;
+        }
+
+        public static Document GetDocument(this Project project, string documentName)
+        {
+            return project.Documents.FirstOrDefault(d => d.Name == documentName);
         }
     }
 }

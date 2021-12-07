@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 
-namespace EventGroups.Roslyn
+namespace LoggerMessages.Roslyn
 {
     public static class WorkspaceExtensions
     {
