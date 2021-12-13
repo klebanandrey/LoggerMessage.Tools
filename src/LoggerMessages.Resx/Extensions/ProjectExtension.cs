@@ -99,5 +99,17 @@ namespace EventGroups.Resx
         {
             throw new NotImplementedException();
         }
+
+        public static Project AddResource(this Project project, LoggerMessage message, ref TextDocument document)
+        {
+
+            using (ResXResourceWriter resx = new ResXResourceWriter(Path.Combine(Path.GetDirectoryName(project.FilePath), Constants.LoggerMessagesResxFolderName, Constants.LoggerMessagesResxFileName)))
+            {
+                resx.AddResource(message.Group.Abbreviation, message.MessageTemplate);
+                resx.Close();
+            }
+
+            return document.Project;
+        }
     }
 }

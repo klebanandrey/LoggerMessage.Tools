@@ -3,10 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using EventGroups.Roslyn;
+using LoggerMessages.Common;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Build.Locator;
+using Microsoft.CodeAnalysis;
 
 namespace LoggerMessages.Roslyn.Tests
 {
@@ -17,6 +19,8 @@ namespace LoggerMessages.Roslyn.Tests
 
         public TestContext TestContext { get; set; }
 
+        private static VisualStudioInstance _instance;
+
         [TestInitialize]
         public void TestInit()
         {
@@ -24,10 +28,7 @@ namespace LoggerMessages.Roslyn.Tests
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
-            var qqq = MSBuildLocator.QueryVisualStudioInstances(new VisualStudioInstanceQueryOptions()
-                { DiscoveryTypes = DiscoveryType.DotNetSdk });
-
-            MSBuildLocator.RegisterMSBuildPath(_configuration["MsBuildPath"]);
+            _instance ??= MSBuildLocator.RegisterDefaults();
         }
 
         [TestMethod]
@@ -55,20 +56,22 @@ namespace LoggerMessages.Roslyn.Tests
 
 
         [TestMethod]
-        [DataRow(20, "Logger1")]
-        [DataRow(29, "Logger")]
-        public void CheckGettingLoggerVariable(int rowNumber, string result)
+        [DataRow(5, 5, "CheckLoggerEmpty.cs", "_logger")]
+        [DataRow(7, 5, "CheckLoggerField.cs", "Logger")]
+        [DataRow(8, 5, "CheckLoggerProperty.cs", "Logger")]
+        public void CheckGettingLoggerVariable(int rowNumber, int columnNumber, string fileName, string result)
         {
             var _slnPath = Path.Combine(TestContext.TestResultsDirectory, "sln");
             DirectoryCopy(_configuration["TestSolutionPath"], _slnPath, true);
 
             var workspace = MSBuildWorkspace.Create();
+            workspace.LoadMetadataForReferencedProjects = true;
             var solution = workspace.OpenSolutionAsync(Path.Combine(_slnPath, "TestLoggerMessages.sln")).Result;
             var project = solution.Projects.FirstOrDefault(p => p.Name == "TestLoggerMessages");
-            var document = project.Documents.FirstOrDefault(d => d.Name == "Class1.cs");
+            var document = project.Documents.FirstOrDefault(d => d.Name == fileName);
 
-            document.GetOrCreateLoggerVariable(rowNumber, out var loggerVariable);
-            Assert.AreEqual(loggerVariable, result);
+            //document.GetOrCreateLoggerVariable(rowNumber, columnNumber, out var loggerVariable);
+            //Assert.AreEqual(result, loggerVariable);
         }
 
 
@@ -94,9 +97,9 @@ namespace LoggerMessages.Roslyn.Tests
             foreach (FileInfo file in files)
             {
                 string tempPath = Path.Combine(destDirName, file.Name);
-                file.CopyTo(tempPath, false);
+                file.CopyTo(tempPath, true);
             }
-
+            
             // If copying subdirectories, copy them and their contents to new location.
             if (copySubDirs)
             {

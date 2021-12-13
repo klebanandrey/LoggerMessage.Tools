@@ -1,16 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using LoggerMessages.Common;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-
-namespace LoggerMessages.Roslyn
+namespace LoggerMessages.Common
 {
     public class LoggerMessage
     {
@@ -36,6 +29,7 @@ namespace LoggerMessages.Roslyn
 
         public IList<string> Parameters => _parameters;
 
+        public string LoggerVariable { get; set; }
 
         public static LoggerMessage Create(string template)
         {
@@ -80,23 +74,6 @@ namespace LoggerMessages.Roslyn
         public string GetMethodCall(string loggerVariable)
         {
             return $"{loggerVariable}.{GetMethodSignature()}";
-        }
-
-        public ExpressionStatementSyntax GetMethodCallExpression(string loggerVariable)
-        {
-            return SF.ExpressionStatement(
-                SF.InvocationExpression(
-                        SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                SF.IdentifierName(loggerVariable), SF.IdentifierName(GetMethodName()))
-                            .WithOperatorToken(SF.Token(SyntaxKind.DotToken)))
-                    .WithArgumentList(SF.ArgumentList(
-                            SF.SingletonSeparatedList<ArgumentSyntax>(
-                                SF.Argument(
-                                    SF.LiteralExpression(
-                                        SyntaxKind.StringLiteralExpression,
-                                        SF.Literal(SF.TriviaList(), @"""A""", @"""A""", SF.TriviaList())))))
-                        .WithOpenParenToken(SF.Token(SyntaxKind.OpenParenToken))
-                        .WithCloseParenToken(SF.Token(SyntaxKind.CloseParenToken))));
         }
     }
 }

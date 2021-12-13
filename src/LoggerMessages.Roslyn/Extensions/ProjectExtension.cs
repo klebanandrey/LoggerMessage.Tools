@@ -10,12 +10,12 @@ namespace EventGroups.Roslyn
         public static Project GetOrCreateLoggerMessagesExtensions(this Project project, out Document document)
         {
             var existFile = project.Documents.FirstOrDefault(d =>
-                d.Name.Equals(Constants.LoggerMessagesFileName, StringComparison.OrdinalIgnoreCase));
+                d.Name.Equals(Constants.LoggerMessagesExtensionsFileName, StringComparison.OrdinalIgnoreCase));
             if (existFile != null)
                 document = existFile;
             else
             {
-                var newDoc = project.AddDocument(Constants.LoggerMessagesFileName, Constants.DefaultContent,
+                var newDoc = project.AddDocument(Constants.LoggerMessagesExtensionsFileName, Constants.DefaultContent,
                     new[] {Constants.LoggerMessagesFolderName});
                 document = newDoc.WithSyntaxRoot(newDoc.CreateLoggerMessageClass());
             }

@@ -2,13 +2,13 @@
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
-using System.Globalization;
 using EnvDTE;
 using LoggerMessageExtension.Views;
 using EventGroups.Resx;
 using EventGroups.Roslyn;
 using Task = System.Threading.Tasks.Task;
 using LoggerMessageExtension.Exceptions;
+using LoggerMessages.Common;
 using LoggerMessages.Roslyn;
 
 namespace LoggerMessageExtension
@@ -104,7 +104,6 @@ namespace LoggerMessageExtension
 
             var ws = loggerPackage.ImportedWorkspace;
             var currentProject = ws.GetProject(activeDocument.ProjectItem.ContainingProject.Name);
-            var currentDocument = currentProject.GetDocument(activeDocument.Name);
             var textSelection = dte.ActiveWindow.Selection as EnvDTE.TextSelection;
             loggerPackage.EventGroupService.Solution = ws.CurrentSolution;
 
@@ -114,29 +113,31 @@ namespace LoggerMessageExtension
             var isCanceled = !lmEditor.ShowModal() ?? true;
             if (isCanceled)
                 return;
-            
-            loggerMessage = lmEditor.Message;
 
-            var prj = currentDocument.Project
+            currentProject = currentProject
                 .GetOrCreateLoggerMessagesResx(out var resxDocument)
                 .GetOrCreateLoggerMessagesExtensions(out var extensionsDocument);
 
-            currentDocument = prj.GetDocument(currentDocument.Id)
-                .GetOrCreateLoggerVariable(textSelection.CurrentLine, out var loggerVariable)
-                .AddCall(loggerMessage, textSelection.CurrentLine, loggerVariable);
+            ws.TryApplyChanges(currentProject.Solution);
 
+            var currentDocument = currentProject.GetDocument(activeDocument.Name);
 
-            prj = currentDocument.Project;
+            loggerMessage = lmEditor.Message;
 
-            ws.TryApplyChanges(prj.Solution);
+            currentProject = currentProject.AddResource(loggerMessage, ref resxDocument);
 
-            prj = prj.GenerateResxClass();
+            var classDeclaration = currentProject.GetDocument(currentDocument.Id)
+                .GetClassDeclaration(textSelection.CurrentLine, textSelection.CurrentColumn, out var semanticModel);
+            loggerMessage.LoggerVariable = classDeclaration.GetOrCreateLoggerVariable(semanticModel, ref currentDocument);
+            classDeclaration = classDeclaration.AddCall(loggerMessage, textSelection.CurrentLine, textSelection.CurrentColumn, ref currentDocument);
+
+            currentProject = currentDocument.Project;
+
+            ws.TryApplyChanges(currentProject.Solution);
+
+            currentProject = currentProject.GenerateResxClass();
             
-            ws.TryApplyChanges(prj.Solution);
-
-
-
-
+            ws.TryApplyChanges(currentProject.Solution);
 
 
             EnvDTE.TextSelection ts = dte.ActiveWindow.Selection as EnvDTE.TextSelection;

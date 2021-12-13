@@ -30,7 +30,7 @@ namespace LoggerMessageExtension
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(LoggerMessageExtensionPackage.PackageGuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideOptionPage(typeof(LoggerMessageOptions), "Logger messages", "My Grid Page", 0, 0, true)]
+    [ProvideOptionPage(typeof(LoggerMessageOptions), "Logger messages", "General", 0, 0, true)]
     public sealed class LoggerMessageExtensionPackage : AsyncPackage
     {
         /// <summary>
