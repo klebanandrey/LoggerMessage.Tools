@@ -7,6 +7,7 @@ namespace LoggerMessageTools.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
+
             await VS.Windows.ShowDialogAsync(new LoggerMessageEditorWindow(this.Package));
         }
     }

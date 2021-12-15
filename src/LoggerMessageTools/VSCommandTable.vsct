@@ -9,7 +9,7 @@
   <Commands package="LoggerMessageTools">
     <Groups>
       <Group guid="LoggerMessageTools" id="MyMenuGroup" priority="0x0600">
-        <Parent guid="VSMainMenu" id="Tools"/>
+        <!--<Parent guid="VSMainMenu" id="Tools"/>-->
       </Group>
     </Groups>
 
@@ -27,6 +27,22 @@
       </Button>
     </Buttons>
   </Commands>
+
+  <CommandPlacements>
+
+	  <!-- Placement for group. The parent of a group is a menu, context menu or toolbar. 
+           The priority sets the position of the group compared to the priority of other existing groups in the menu.    
+      -->
+	  <CommandPlacement guid="LoggerMessageTools" id="MyMenuGroup" priority="0xFFFF">
+		  <!-- The parent of the group will be the code window context menu -->
+		  <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+	  </CommandPlacement>
+
+	  <!-- Placement for command. The parent of a command is always a group, never a menu, context menu or toolbar. -->
+	  <!--<CommandPlacement guid="guidVSPackageCommandCodeWindowContextMenuCmdSet" id="Command1Id" priority="0x0001" >
+		  <Parent guid="guidVSPackageCommandCodeWindowContextMenuCmdSet" id="MyGroupForCommands"/>
+	  </CommandPlacement>-->
+  </CommandPlacements>
 
   <Symbols>
     <GuidSymbol name="LoggerMessageTools" value="{80195194-274d-48ac-8698-ed8be6c1968d}">

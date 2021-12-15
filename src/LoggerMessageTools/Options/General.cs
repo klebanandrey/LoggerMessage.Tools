@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using LoggerMessage.Shared;
 
-namespace LoggerMessageTools
+namespace LoggerMessageTools.Options
 {
     internal partial class OptionsProvider
     {

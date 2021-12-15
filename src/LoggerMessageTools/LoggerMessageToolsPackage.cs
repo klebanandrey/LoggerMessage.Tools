@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using LoggerMessage.Shared;
 using LoggerMessage.Shared.Services;
-using LoggerMessageTools.Services;
+using LoggerMessageTools.Options;
 
 namespace LoggerMessageTools
 {
@@ -23,7 +23,6 @@ namespace LoggerMessageTools
         {
             await this.RegisterCommandsAsync();
             this.AddService(typeof(ConfigurationHelper), async (container, token, type) => new ConfigurationHelper(VS.Solutions.GetCurrentSolution().FullPath));
-            this.AddService(typeof(Service), async (container, token, type) => new Service());
             this.AddService(typeof(IEventGroupService), async (container, token, type) => EventGroupServiceCreator.Create(VS.Solutions.GetCurrentSolution().FullPath));
         }
     }
