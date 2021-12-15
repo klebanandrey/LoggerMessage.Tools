@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Resources;
-using LoggerMessages.Common;
+using LoggerMessage.Shared;
 using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
 
-namespace EventGroups.Resx
+namespace LoggerMessages.Resx.Extensions
 {
     public static class ProjectExtension
     {
@@ -100,7 +100,7 @@ namespace EventGroups.Resx
             throw new NotImplementedException();
         }
 
-        public static Project AddResource(this Project project, LoggerMessage message, ref TextDocument document)
+        public static Project AddResource(this Project project, LoggerMessage.Shared.LoggerMessage message, ref TextDocument document)
         {
 
             using (ResXResourceWriter resx = new ResXResourceWriter(Path.Combine(Path.GetDirectoryName(project.FilePath), Constants.LoggerMessagesResxFolderName, Constants.LoggerMessagesResxFileName)))

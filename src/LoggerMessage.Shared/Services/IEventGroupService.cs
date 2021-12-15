@@ -1,15 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using LoggerMessage.Shared;
-using Microsoft.CodeAnalysis;
 
-namespace LoggerMessageExtension.Services
+namespace LoggerMessage.Shared.Services
 {
     public interface IEventGroupService
     {
         bool Connected { get;}
 
-        Solution Solution { get; set; }
+        //Solution Solution { get; set; }
 
         Task<bool> IsAbbrExistAsync(string abbr);
 

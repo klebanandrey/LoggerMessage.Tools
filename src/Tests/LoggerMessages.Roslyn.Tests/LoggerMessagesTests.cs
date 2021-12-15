@@ -1,14 +1,10 @@
-using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using EventGroups.Roslyn;
-using LoggerMessages.Common;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis;
+using LoggerMessage.Shared;
 
 namespace LoggerMessages.Roslyn.Tests
 {
@@ -38,7 +34,7 @@ namespace LoggerMessages.Roslyn.Tests
         [DataRow("Text {param1} and {param2} text", "Text_0_and_1_text(string param1, string param2)")]
         public void CheckGettingSignature(string input, string result)
         {
-            var loggerMessage = LoggerMessage.Create(input);
+            var loggerMessage = LoggerMessage.Shared.LoggerMessage.Create(input);
 
             Assert.AreEqual(loggerMessage.GetMethodSignature(), result);
         }
@@ -49,7 +45,7 @@ namespace LoggerMessages.Roslyn.Tests
         [DataRow("_logger", "Some text {param1} {param2}", "_logger.Some_text_0_1_(string param1, string param2)")]
         public void CheckGettingCall(string loggerName, string input, string result)
         {
-            var loggerMessage = LoggerMessage.Create(input);
+            var loggerMessage = LoggerMessage.Shared.LoggerMessage.Create(input);
 
             Assert.AreEqual(loggerMessage.GetMethodCall(loggerName), result);
         }

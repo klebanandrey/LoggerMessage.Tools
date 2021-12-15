@@ -1,16 +1,13 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LoggerMessageExtension.Extensions;
-using LoggerMessageExtension.EventGroupsClientService;
-using System.Net.Http.Headers;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using EventGroups.Contract;
-using LoggerMessage.Shared;
+using LoggerMessageExtension.EventGroupsClientService;
 
-namespace LoggerMessageExtension.Services
+namespace LoggerMessage.Shared.Services
 {
     public class RemoteEventGroupService : IEventGroupService
     {
@@ -37,7 +34,7 @@ namespace LoggerMessageExtension.Services
             }            
         }
 
-        public Solution Solution {get; set;}
+        //public Solution Solution {get; set;}
 
         public bool Connected => _connected;
 
@@ -46,7 +43,8 @@ namespace LoggerMessageExtension.Services
             if (!Connected)
                 return null;
 
-            var groups = await _client.ApiEventgroupsSolutiongroupsAsync(Solution.Id.Id).ConfigureAwait(false);
+            //TODO : var groups = await _client.ApiEventgroupsSolutiongroupsAsync(Solution.Id.Id).ConfigureAwait(false);
+            var groups = await _client.ApiEventgroupsSolutiongroupsAsync(Guid.Empty).ConfigureAwait(false);
 
             return await Task.FromResult(groups.Select(g => new EventGroupViewObject()
             {
@@ -60,7 +58,8 @@ namespace LoggerMessageExtension.Services
             if (!Connected)
                 return false;
 
-            var result = await _client.ApiEventgroupsFindAsync(Solution.Id.Id, abbr);
+            //TODO :var result = await _client.ApiEventgroupsFindAsync(Solution.Id.Id, abbr);
+            var result = await _client.ApiEventgroupsFindAsync(Guid.Empty, abbr);
 
             if (result == null)
                 return false;
@@ -76,8 +75,11 @@ namespace LoggerMessageExtension.Services
             {
                 Description = newEventGroupViewObject.Description,
                 EventGroupAbbr = newEventGroupViewObject.Abbreviation,
-                SolutionId = Solution.Id.Id,
-                SolutionName = Solution.GetSolutionName(),
+                //TODO : SolutionId = Solution.Id.Id,
+                //TODO : SolutionName = Solution.GetSolutionName(),
+                SolutionId = Guid.Empty,
+                SolutionName = "",
+
                 Owner = _userId
             }) != null)            
                 return true;

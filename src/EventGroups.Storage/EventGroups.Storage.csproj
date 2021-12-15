@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LoggerMessages.Common\LoggerMessages.Common.csproj" />
+    <ProjectReference Include="..\LoggerMessage.Shared\LoggerMessage.Shared.csproj" />
   </ItemGroup>
 
 </Project>

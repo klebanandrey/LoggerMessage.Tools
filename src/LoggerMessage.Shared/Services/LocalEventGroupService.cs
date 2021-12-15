@@ -2,15 +2,14 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using LoggerMessage.Shared;
 using Newtonsoft.Json;
 
-namespace LoggerMessageExtension.Services
+namespace LoggerMessage.Shared.Services
 {
     public class LocalEventGroupService : IEventGroupService
     {
         public bool Connected => true;
-        public Microsoft.CodeAnalysis.Solution Solution { get; set; }
+        //public Microsoft.CodeAnalysis.Solution Solution { get; set; }
 
         private List<EventGroupLocal> _groups;
         private readonly string filePath;

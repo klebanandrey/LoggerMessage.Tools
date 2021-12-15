@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using LoggerMessageExtension.Services;
 using LoggerMessages.Roslyn;
+using LoggerMessages.Roslyn.Extensions;
 
 namespace LoggerMessageExtension.Options
 {

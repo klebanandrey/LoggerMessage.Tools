@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using LoggerMessage.Shared;
 using Microsoft.CodeAnalysis;
 
-namespace LoggerMessages.Roslyn
+namespace LoggerMessages.Roslyn.Extensions
 {
     public static class WorkspaceExtensions
     {
@@ -27,13 +28,13 @@ namespace LoggerMessages.Roslyn
 
         private static string GetConfigPath(this Workspace workspace)
         {
-            return Path.Combine(workspace.GetConfigFolder(), LoggerMessages.Common.Constants.ConfigFileName);
+            return Path.Combine(workspace.GetConfigFolder(), Constants.ConfigFileName);
         }
 
         public static string GetConfigFolder(this Workspace workspace)
         {
             return Path.Combine(Path.GetDirectoryName(workspace.CurrentSolution.FilePath),
-                LoggerMessages.Common.Constants.SettingsFolder);
+                Constants.SettingsFolder);
         }
 
         private static bool CreateDefaultConfig(this Workspace workspace)
@@ -42,9 +43,9 @@ namespace LoggerMessages.Roslyn
             {
                 var defaultConfiguration = new Dictionary<string, object>()
                 {
-                    {LoggerMessages.Common.Constants.IsShared, false},
-                    {LoggerMessages.Common.Constants.ServiceUrl, ""},
-                    {LoggerMessages.Common.Constants.ApiKey, ""}
+                    {Constants.IsShared, false},
+                    {Constants.ServiceUrl, ""},
+                    {Constants.ApiKey, ""}
                 };
 
                 var str = JsonSerializer.Serialize(defaultConfiguration, defaultConfiguration.GetType(), jsonSettings);

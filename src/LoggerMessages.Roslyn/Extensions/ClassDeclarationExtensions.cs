@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using LoggerMessages.Common;
 using LoggerMessages.Roslyn.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -81,7 +80,7 @@ namespace LoggerMessages.Roslyn
             return loggerField.Declaration.Variables.OfType<VariableDeclaratorSyntax>().FirstOrDefault().Identifier.Text;
         }
 
-        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, LoggerMessage message, int rowNumber, int columnNumber, ref Document document)
+        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, LoggerMessage.Shared.LoggerMessage message, int rowNumber, int columnNumber, ref Document document)
         {
             var blockSyntax = classDeclaration.DescendantNodes().OfType<BlockSyntax>().LastOrDefault(c =>
                 c.SyntaxTree.GetLineSpan(c.Span).StartLinePosition.Line <= rowNumber &&

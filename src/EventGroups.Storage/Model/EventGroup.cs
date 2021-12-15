@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using LoggerMessages.Common;
+using LoggerMessage.Shared;
 
 namespace EventGroups.Storage.Model
 {

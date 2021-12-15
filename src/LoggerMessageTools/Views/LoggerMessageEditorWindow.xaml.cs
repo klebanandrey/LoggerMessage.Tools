@@ -1,29 +1,31 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Windows;
 using LoggerMessage.Shared;
-using LoggerMessageExtension.Exceptions;
+using LoggerMessage.Shared.Exceptions;
+using LoggerMessage.Shared.Services;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 
-namespace LoggerMessageExtension.Views
+namespace LoggerMessageTools.Views
 {
     /// <summary>
     /// Логика взаимодействия для LoggerMessageEditorWindow.xaml
     /// </summary>
     public partial class LoggerMessageEditorWindow : DialogWindow
     {        
-        private readonly LoggerMessageExtensionPackage _package;
+        private readonly AsyncPackage _package;
+        private readonly IEventGroupService _eventGroupService;
 
         public LoggerMessage.Shared.LoggerMessage Message { get; set; }
 
-        public LoggerMessageEditorWindow(LoggerMessageExtensionPackage package, LoggerMessage.Shared.LoggerMessage message = null)
+        public LoggerMessageEditorWindow(AsyncPackage package, LoggerMessage.Shared.LoggerMessage message = null)
         {
             InitializeComponent();
             _package = package;
+
+            _eventGroupService = _package.GetServiceAsync(typeof(IEventGroupService)).Result as IEventGroupService;
             ThreadHelper.JoinableTaskFactory.Run(async delegate
             {
-                ScopesComboBox.ItemsSource = await _package.EventGroupService.GetEventGroupsAsync();
+                ScopesComboBox.ItemsSource = await _eventGroupService.GetEventGroupsAsync();
             });
 
             Message = message;
@@ -31,7 +33,7 @@ namespace LoggerMessageExtension.Views
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!_package.EventGroupService.Connected)
+            if (!_eventGroupService.Connected)
                 throw new FailedConnectionException();
 
             Message.MessageTemplate = MessageTextBox.Text;
@@ -50,7 +52,7 @@ namespace LoggerMessageExtension.Views
 
         private void AddScopeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!_package.EventGroupService.Connected)
+            if (!_eventGroupService.Connected)
                 throw new FailedConnectionException();
 
             var newScopeEditor = new NewScopeWindow(_package);
@@ -63,7 +65,7 @@ namespace LoggerMessageExtension.Views
 
             ThreadHelper.JoinableTaskFactory.Run(async delegate
             {
-                ScopesComboBox.ItemsSource = await _package.EventGroupService.GetEventGroupsAsync();
+                ScopesComboBox.ItemsSource = await _eventGroupService.GetEventGroupsAsync();
             });
 
             var items = ScopesComboBox.Items.Cast<EventGroupViewObject>().ToList();

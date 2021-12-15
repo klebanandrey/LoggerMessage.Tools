@@ -1,5 +1,4 @@
-﻿using LoggerMessages.Common;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -7,7 +6,7 @@ namespace LoggerMessages.Roslyn.Extensions
 {
     public static class LoggerMessageExtensions
     {
-        public static ExpressionStatementSyntax GetMethodCallExpression(this LoggerMessage loggerMessage)
+        public static ExpressionStatementSyntax GetMethodCallExpression(this LoggerMessage.Shared.LoggerMessage loggerMessage)
         {
             return SF.ExpressionStatement(
                 SF.InvocationExpression(

@@ -1,19 +1,18 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using LoggerMessage.Shared;
-using LoggerMessageExtension.Exceptions;
+using LoggerMessage.Shared.Exceptions;
+using LoggerMessage.Shared.Services;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 
-namespace LoggerMessageExtension.Views
+namespace LoggerMessageTools.Views
 {
     /// <summary>
     /// Логика взаимодействия для NewScopeWindow.xaml
     /// </summary>
     public partial class NewScopeWindow : DialogWindow
     {
-        private readonly LoggerMessageExtensionPackage _package;
+        private readonly AsyncPackage _package;
 
         private EventGroupViewObject _eventGroupViewObject;
         public EventGroupViewObject EventGroupViewObject
@@ -21,7 +20,7 @@ namespace LoggerMessageExtension.Views
             get { return _eventGroupViewObject; }
         }
 
-        public NewScopeWindow(LoggerMessageExtensionPackage package)
+        public NewScopeWindow(AsyncPackage package)
         {
             _package = package;
             InitializeComponent();
@@ -56,7 +55,9 @@ namespace LoggerMessageExtension.Views
 
         private void ScopeAddButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!_package.EventGroupService.Connected)
+            var eventGroupService = _package.GetServiceAsync(typeof(IEventGroupService)).Result as IEventGroupService;
+
+            if (!eventGroupService.Connected)
                 throw new FailedConnectionException();
 
             _eventGroupViewObject.Abbreviation = this.AbbrTextBox.Text;
@@ -64,7 +65,7 @@ namespace LoggerMessageExtension.Views
 
             ThreadHelper.JoinableTaskFactory.Run(async delegate
             {
-                await _package.EventGroupService.TryAddEventGroupAsync(_eventGroupViewObject);
+                await eventGroupService.TryAddEventGroupAsync(_eventGroupViewObject);
             });
             
             e.Handled = true;

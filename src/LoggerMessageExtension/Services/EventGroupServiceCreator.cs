@@ -1,8 +1,8 @@
 ﻿using System;
-using EventGroups.Roslyn;
-using LoggerMessages.Roslyn;
+using LoggerMessages.Roslyn.Extensions;
 using Microsoft.CodeAnalysis;
-using Constants = LoggerMessages.Common.Constants;
+using Constants = LoggerMessage.Shared.Constants;
+
 
 namespace LoggerMessageExtension.Services
 {

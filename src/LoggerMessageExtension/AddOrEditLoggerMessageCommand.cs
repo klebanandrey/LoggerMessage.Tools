@@ -4,12 +4,12 @@ using System;
 using System.ComponentModel.Design;
 using EnvDTE;
 using LoggerMessageExtension.Views;
-using EventGroups.Resx;
 using EventGroups.Roslyn;
 using Task = System.Threading.Tasks.Task;
 using LoggerMessageExtension.Exceptions;
-using LoggerMessages.Common;
+using LoggerMessages.Resx.Extensions;
 using LoggerMessages.Roslyn;
+using LoggerMessages.Roslyn.Extensions;
 
 namespace LoggerMessageExtension
 {
@@ -107,7 +107,7 @@ namespace LoggerMessageExtension
             var textSelection = dte.ActiveWindow.Selection as EnvDTE.TextSelection;
             loggerPackage.EventGroupService.Solution = ws.CurrentSolution;
 
-            var loggerMessage = LoggerMessage.Create("");
+            var loggerMessage = LoggerMessage.Shared.LoggerMessage.Create("");
 
             var lmEditor = new LoggerMessageEditorWindow(loggerPackage, loggerMessage);
             var isCanceled = !lmEditor.ShowModal() ?? true;

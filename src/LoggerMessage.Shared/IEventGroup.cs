@@ -1,4 +1,4 @@
-﻿namespace LoggerMessages.Common
+﻿namespace LoggerMessage.Shared
 {
     public interface IEventGroup
     {

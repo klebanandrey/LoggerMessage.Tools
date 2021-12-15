@@ -1,6 +1,4 @@
-﻿using LoggerMessage.Shared;
-
-namespace LoggerMessageExtension
+﻿namespace LoggerMessage.Shared
 {
     public class EventGroupViewObject : IEventGroup
     {
