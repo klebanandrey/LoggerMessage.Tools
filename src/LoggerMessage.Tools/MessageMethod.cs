@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using LoggerMessage.Shared;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace LoggerMessages.Roslyn
+namespace LoggerMessage.Tools
 {
     public class MessageMethod
     {
@@ -54,8 +54,8 @@ namespace LoggerMessages.Roslyn
             };
             if (Id.Length > 0)
             {
-                message.Abbr = Id.Substring(0, Constants.AbbrLength);
-                message.Number = int.Parse(Id.Substring(Constants.AbbrLength).TrimStart('0'));
+                message.Abbr = Id.Substring(0, Shared.Constants.AbbrLength);
+                message.Number = int.Parse(Id.Substring(Shared.Constants.AbbrLength).TrimStart('0'));
             }
             return message;
         }
@@ -68,13 +68,6 @@ namespace LoggerMessages.Roslyn
                 res.Add(param.Value);
 
             return res;
-        }
-
-        public string GetMethodSignature()
-        {
-            var parameters = String.Join(", ", _parameters.Select(p => $"string {p}"));
-
-            return GetMethodName("") + $"({parameters})";
         }
 
         public string GetMethodName(string methodIdentifier)

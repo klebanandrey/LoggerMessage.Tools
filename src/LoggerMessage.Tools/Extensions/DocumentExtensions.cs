@@ -1,17 +1,15 @@
 ﻿using System.Linq;
-using EventGroups.Roslyn;
-using LoggerMessages.Roslyn.Exceptions;
-using LoggerMessages.Roslyn.Extensions;
+using LoggerMessage.Tools.Exceptions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace LoggerMessages.Roslyn
+namespace LoggerMessage.Tools.Extensions
 {
     public static class DocumentExtensions
     {
-        public static SyntaxNode CreateLoggerMessageClass(this Document document)
+        public static SyntaxNode CreateLoggerExtensions(this Document document)
         {
             var root = document.GetSyntaxRootAsync().Result as CompilationUnitSyntax;
             root = root.AddUsings(SF.UsingDirective(SF.ParseName($"{document.Project.Name}.Properties")));
@@ -22,18 +20,15 @@ namespace LoggerMessages.Roslyn
 
             var ns = SF.NamespaceDeclaration(SF.ParseName(nsStr));
 
-            //  Create a class: (class Order)
-            var classDeclaration = SF.ClassDeclaration(Constants.ClassName);
-
-            // Add the public modifier: (public static class Order)
-            classDeclaration = classDeclaration.AddModifiers(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.StaticKeyword));
-
-            ns = ns.AddMembers(classDeclaration);
-
+            ns = ns.AddMembers(document.CreateEmptyClassDeclaration());
             return root.AddMembers(ns).NormalizeWhitespace();
         }
 
-
+        public static ClassDeclarationSyntax CreateEmptyClassDeclaration(this Document document)
+        {
+            var classDeclaration = SF.ClassDeclaration(Constants.ClassName);
+            return classDeclaration.AddModifiers(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.StaticKeyword)).NormalizeWhitespace();
+        }
 
         public static ClassDeclarationSyntax GetClassDeclaration(this Document document, int rowNumber = 0, int columnNumber = 0)
         {

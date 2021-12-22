@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using LoggerMessage.Shared;
-using LoggerMessages.Roslyn.Extensions;
+using LoggerMessage.Tools.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Constants = EventGroups.Roslyn.Constants;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace LoggerMessages.Roslyn
+namespace LoggerMessage.Tools
 {
     public class LoggerExtensions
     {
@@ -177,6 +177,20 @@ namespace LoggerMessages.Roslyn
             messageMethod.ExpressionStatement = CreateExpressionStatement(messageMethod, classDeclaration);
             MessageMethods.Add(messageMethod);
             return messageMethod;
+        }
+
+        public async Task<Document> FillExtensionsFile(Document extensionsFile)
+        {
+            var fields = MessageMethods.Select(m => m.FieldDeclaration);
+            var methods = MessageMethods.Select(m => m.MethodDeclaration);
+
+            var classDeclaration = extensionsFile.GetClassDeclaration();
+            var root = await extensionsFile.GetSyntaxRootAsync();
+
+            var newClass = extensionsFile.CreateEmptyClassDeclaration();
+            newClass = newClass.AddMembers(fields.ToArray()).AddMembers(methods.ToArray());
+            root = root.ReplaceNode(classDeclaration, newClass);
+            return extensionsFile.WithSyntaxRoot(root);
         }
     }
 }

@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LoggerMessage.Shared;
 using LoggerMessage.Shared.Services;
-using LoggerMessages.Resx.Extensions;
-using LoggerMessages.Roslyn;
-using LoggerMessages.Roslyn.Extensions;
+using LoggerMessage.Tools.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Constants = EventGroups.Roslyn.Constants;
 
 namespace LoggerMessage.Tools
 {
@@ -32,7 +28,7 @@ namespace LoggerMessage.Tools
 
             var newDoc = project.AddDocument(Constants.LoggerMessagesExtensionsFileName, Constants.DefaultContent,
                 new[] { Constants.LoggerMessagesFolderName });
-            return newDoc.WithSyntaxRoot(newDoc.CreateLoggerMessageClass());
+            return newDoc.WithSyntaxRoot(newDoc.CreateLoggerExtensions());
         }
 
         public TextDocument GetOrCreateLoggerMessagesResx(Project project)
@@ -81,7 +77,7 @@ namespace LoggerMessage.Tools
             return result;
         }
 
-        public string GetLoggerMessageMethodInvocation(Document document, ClassDeclarationSyntax classDeclaration,
+        public ExpressionStatementSyntax GetLoggerMessageMethodInvocation(Document document, ClassDeclarationSyntax classDeclaration,
             MessageMethod messageMethod, LoggerExtensions extensions, ViewParams viewParams)
         {
             var compilation = CSharpCompilation.Create(document.Project.AssemblyName)
@@ -94,7 +90,7 @@ namespace LoggerMessage.Tools
 
             var loggerVariable = classDeclaration.GetOrCreateLoggerVariable(model, ref document);
 
-            return messageMethod.GetMethodCallExpression(loggerVariable, messageMethod.Id).NormalizeWhitespace().ToFullString();
+            return messageMethod.GetMethodCallExpression(loggerVariable, messageMethod.Id).NormalizeWhitespace();
         }
     }
 }

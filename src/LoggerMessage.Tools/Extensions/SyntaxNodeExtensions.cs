@@ -1,10 +1,10 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace LoggerMessages.Roslyn.Extensions
+namespace LoggerMessage.Tools.Extensions
 {
     public static class SyntaxNodeExtensions
     {
@@ -31,7 +31,6 @@ namespace LoggerMessages.Roslyn.Extensions
                    lineSpan.StartLinePosition.Character <= columnNumber &&
                    lineSpan.EndLinePosition.Character >= columnNumber;
         }
-
 
         public static IEnumerable<TNode> DescendantNodes<TNode>(this SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren = null, bool descendIntoTrivia = false) where TNode : SyntaxNode
         {

@@ -132,10 +132,6 @@
       <Project>{6bb745bd-516c-4de6-978a-f6f77b90cef1}</Project>
       <Name>LoggerMessage.Tools</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LoggerMessages.Roslyn\LoggerMessages.Roslyn.csproj">
-      <Project>{a7bf51c8-730c-462f-b147-bbbaad8c03c7}</Project>
-      <Name>LoggerMessages.Roslyn</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

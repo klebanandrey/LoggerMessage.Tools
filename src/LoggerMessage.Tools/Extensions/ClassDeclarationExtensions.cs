@@ -1,12 +1,10 @@
 ﻿using System.Linq;
-using LoggerMessages.Roslyn.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Constants = EventGroups.Roslyn.Constants;
 using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace LoggerMessages.Roslyn
+namespace LoggerMessage.Tools.Extensions
 {
     public static class ClassDeclarationExtensions
     {
@@ -80,13 +78,13 @@ namespace LoggerMessages.Roslyn
             return loggerField.Declaration.Variables.OfType<VariableDeclaratorSyntax>().FirstOrDefault().Identifier.Text;
         }
 
-        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, MessageMethod messageMethod, int rowNumber, int columnNumber, ref Document document)
+        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, ExpressionStatementSyntax expression, int rowNumber, int columnNumber, ref Document document)
         {
             var blockSyntax = classDeclaration.DescendantNodes().OfType<BlockSyntax>().LastOrDefault(c =>
                 c.SyntaxTree.GetLineSpan(c.Span).StartLinePosition.Line <= rowNumber &&
                 c.SyntaxTree.GetLineSpan(c.Span).EndLinePosition.Line >= rowNumber);
 
-            var newBlockSyntax = blockSyntax.AddStatements(messageMethod.GetMethodCallExpression("", ""));
+            var newBlockSyntax = blockSyntax.AddStatements(expression);
 
             var root = GetCompilationUnitSyntax(classDeclaration);
 

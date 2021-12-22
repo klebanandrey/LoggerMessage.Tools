@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using LoggerMessage.Shared;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace LoggerMessages.Roslyn.Extensions
+namespace LoggerMessage.Tools.Extensions
 {
     public static class MethodDeclarationSyntaxExtensions
     {

@@ -1,10 +1,7 @@
 ﻿using System.Threading.Tasks;
-using System.Windows.Controls;
-using EventGroups.Roslyn;
 using LoggerMessage.Shared;
 using LoggerMessage.Tools;
-using LoggerMessages.Roslyn;
-using LoggerMessages.Roslyn.Extensions;
+using LoggerMessage.Tools.Extensions;
 using LoggerMessageTools.Extensions;
 using LoggerMessageTools.Views;
 using Microsoft.CodeAnalysis;
@@ -23,7 +20,6 @@ namespace LoggerMessageTools.Commands
             PhysicalFile file = await PhysicalFile.FromFileAsync(fileName);
             return ws.GetProject(file.ContainingProject.Name);
         }
-
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
@@ -51,20 +47,28 @@ namespace LoggerMessageTools.Commands
             var textSelection = dte.ActiveWindow.Selection as EnvDTE.TextSelection;
 
             var currentProject = await GetProjectAsync(workspace, fileName);
-            var document = currentProject.GetDocument(fileName);
-            var classDeclaration = document.GetClassDeclaration(textSelection.CurrentLine, textSelection.CurrentColumn);
+            var currentDocument = currentProject.GetDocument(fileName);
+            var currentClassDeclaration = currentDocument.GetClassDeclaration(textSelection.CurrentLine, textSelection.CurrentColumn);
 
-            var resxFile = messageService.GetOrCreateLoggerMessagesResx(document.Project);
-            var extensionsFile = messageService.GetOrCreateLoggerMessagesExtensions(document.Project);
+            var resxFile = messageService.GetOrCreateLoggerMessagesResx(currentDocument.Project);
+            var extensionsFile = messageService.GetOrCreateLoggerMessagesExtensions(currentDocument.Project);
 
             var loggerExtensions = LoggerExtensions.Init(extensionsFile);
 
-            var loggerMessage = await messageService.GetLoggerMessage(loggerExtensions, classDeclaration, textSelection.CurrentLine, textSelection.CurrentColumn);
+            var loggerMessage = await messageService.GetLoggerMessage(loggerExtensions, currentClassDeclaration, textSelection.CurrentLine, textSelection.CurrentColumn);
 
             var w = new LoggerMessageEditorWindow(this.Package, new ViewParams(loggerMessage.Abbr, loggerMessage.Level, loggerMessage.MessageTemplate));
             await VS.Windows.ShowDialogAsync(w);
 
-            var invocation = messageService.GetLoggerMessageMethodInvocation(document, classDeclaration, loggerMessage, loggerExtensions, w.ViewParams);
+            var invocation = messageService.GetLoggerMessageMethodInvocation(currentDocument, currentClassDeclaration, loggerMessage, loggerExtensions, w.ViewParams);
+
+            extensionsFile = await loggerExtensions.FillExtensionsFile(extensionsFile);
+            
+            workspace.TryApplyChanges(extensionsFile.Project.Solution);
+
+            currentClassDeclaration = currentClassDeclaration.AddCall(invocation, textSelection.CurrentLine, textSelection.CurrentColumn, ref currentDocument);
+
+            workspace.TryApplyChanges(currentDocument.Project.Solution);
         }
     }
 }
