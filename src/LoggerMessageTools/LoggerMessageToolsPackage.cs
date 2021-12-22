@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using LoggerMessage.Shared;
 using LoggerMessage.Shared.Services;
+using LoggerMessage.Tools;
+using LoggerMessageTools.Extensions;
 using LoggerMessageTools.Options;
 
 namespace LoggerMessageTools
@@ -17,6 +19,7 @@ namespace LoggerMessageTools
     [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "LoggerMessageTools", "General", 0, 0, true)]
     [ProvideProfile(typeof(OptionsProvider.GeneralOptions), "LoggerMessageTools", "General", 0, 0, true)]
 
+    
     public sealed class LoggerMessageToolsPackage : ToolkitPackage
     {
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -24,6 +27,7 @@ namespace LoggerMessageTools
             await this.RegisterCommandsAsync();
             this.AddService(typeof(ConfigurationHelper), async (container, token, type) => new ConfigurationHelper(VS.Solutions.GetCurrentSolution().FullPath));
             this.AddService(typeof(IEventGroupService), async (container, token, type) => EventGroupServiceCreator.Create(VS.Solutions.GetCurrentSolution().FullPath));
+            this.AddService(typeof(MessageService), async (container, token, type) => new MessageService(await this.GetPackageServiceAsync<IEventGroupService>()));
         }
     }
 }

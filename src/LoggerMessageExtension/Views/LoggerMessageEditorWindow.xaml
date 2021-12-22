@@ -5,12 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LoggerMessageExtension.Views"
              xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-             mc:Ignorable="d" Height="149.6" Width="757.8" Title="LoggerMessage editor" ResizeMode="CanResizeWithGrip">
+             mc:Ignorable="d" Height="149.6" Width="757.8" Title="MessageMethod editor" ResizeMode="CanResizeWithGrip">
     <Grid>
         <Button x:Name="CancelButton" Content="Cancel" HorizontalAlignment="Left" Margin="663,82,0,0" VerticalAlignment="Top" Width="75" Click="CancelButton_Click"/>
         <Button x:Name="OkButton" Content="OK" HorizontalAlignment="Left" Margin="583,82,0,0" VerticalAlignment="Top" Width="75" Click="OkButton_Click"/>
         <TextBox x:Name="MessageTextBox" HorizontalAlignment="Left" Height="23" Margin="87,44,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="652"/>
-        <Label Content="Message" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
+        <Label Content="MessageMethod" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ScopesComboBox" HorizontalAlignment="Left" Margin="87,15,0,0" VerticalAlignment="Top" Width="571" IsEditable="True" IsSynchronizedWithCurrentItem="True">
             <ComboBox.ItemTemplate>
                 <DataTemplate>

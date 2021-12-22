@@ -80,13 +80,13 @@ namespace LoggerMessages.Roslyn
             return loggerField.Declaration.Variables.OfType<VariableDeclaratorSyntax>().FirstOrDefault().Identifier.Text;
         }
 
-        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, LoggerMessage.Shared.LoggerMessage message, int rowNumber, int columnNumber, ref Document document)
+        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, MessageMethod messageMethod, int rowNumber, int columnNumber, ref Document document)
         {
             var blockSyntax = classDeclaration.DescendantNodes().OfType<BlockSyntax>().LastOrDefault(c =>
                 c.SyntaxTree.GetLineSpan(c.Span).StartLinePosition.Line <= rowNumber &&
                 c.SyntaxTree.GetLineSpan(c.Span).EndLinePosition.Line >= rowNumber);
 
-            var newBlockSyntax = blockSyntax.AddStatements(message.GetMethodCallExpression());
+            var newBlockSyntax = blockSyntax.AddStatements(messageMethod.GetMethodCallExpression("", ""));
 
             var root = GetCompilationUnitSyntax(classDeclaration);
 

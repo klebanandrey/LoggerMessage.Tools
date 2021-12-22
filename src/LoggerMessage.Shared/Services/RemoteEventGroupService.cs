@@ -86,5 +86,14 @@ namespace LoggerMessage.Shared.Services
 
             return false;
         }
+
+        public async Task<IEventGroup> GetEventGroupAsync(string abbr)
+        {
+            if (!Connected)
+                return null;
+
+            //TODO :var result = await _client.ApiEventgroupsFindAsync(Solution.Id.Id, abbr);
+            return await _client.ApiEventgroupsFindAsync(Guid.Empty, abbr) as IEventGroup;
+        }
     }
 }

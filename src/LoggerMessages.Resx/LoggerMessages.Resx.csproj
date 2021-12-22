@@ -1,20 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.0.1" />
+		<PackageReference Include="ResXResourceReader.NetStandard" Version="1.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\LoggerMessage.Shared\LoggerMessage.Shared.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Reference Include="System.Windows.Forms" />
+	  <ProjectReference Include="..\LoggerMessages.Roslyn\LoggerMessages.Roslyn.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -55,5 +55,19 @@ namespace LoggerMessage.Shared.Services
 
             return true;
         }
+
+        public Task<IEventGroup> GetEventGroupAsync(string abbr)
+        {
+            var group = _groups.FirstOrDefault(g => g.Abbreviation == abbr);
+
+            var groupLocal = new EventGroupLocal()
+            {
+                Abbreviation = group.Abbreviation,
+                Description = group.Description
+            };
+
+
+            return Task.FromResult(groupLocal as IEventGroup);
+        }
     }
 }

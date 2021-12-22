@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Resources;
+using System.Resources.NetStandard;
 using LoggerMessage.Shared;
 using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
@@ -34,6 +34,39 @@ namespace LoggerMessages.Resx.Extensions
             AddItems(csproj, "EmbeddedResource", $"{Constants.LoggerMessagesResxFolderName}\\{Constants.LoggerMessagesResxFileName}");
             csproj.Save();
             return document.Project;
+        }
+
+        public static TextDocument GetOrCreateLoggerMessagesResx(this Project project)
+        {
+            var existFile = project.AdditionalDocuments.FirstOrDefault(d =>
+                d.Name.Equals(Constants.LoggerMessagesResxFileName, StringComparison.OrdinalIgnoreCase));
+            if (existFile != null)
+                return existFile;
+            else
+            {
+                var tmpFilePath = Path.Combine(Path.GetTempPath(), Constants.LoggerMessagesResxFileName);
+                using (ResXResourceWriter resx = new ResXResourceWriter(tmpFilePath))
+                {
+                    resx.Generate();
+                    resx.Close();
+                }
+
+                return project.AddAdditionalDocument(Constants.LoggerMessagesResxFileName,
+                    File.ReadAllText(tmpFilePath), new[] { Constants.LoggerMessagesResxFolderName });
+            }
+        }
+
+        public static TextDocument CreateLoggerMessagesResx(this Project project)
+        {
+            var tmpFilePath = Path.Combine(Path.GetTempPath(), Constants.LoggerMessagesResxFileName);
+            using (ResXResourceWriter resx = new ResXResourceWriter(tmpFilePath))
+            {
+                resx.Generate();
+                resx.Close();
+            }
+
+            return project.AddAdditionalDocument(Constants.LoggerMessagesResxFileName,
+                File.ReadAllText(tmpFilePath), new[] { Constants.LoggerMessagesResxFolderName });
         }
 
 
@@ -100,16 +133,16 @@ namespace LoggerMessages.Resx.Extensions
             throw new NotImplementedException();
         }
 
-        public static Project AddResource(this Project project, LoggerMessage.Shared.LoggerMessage message, ref TextDocument document)
-        {
+        //public static Project AddResource(this Project project, MessageMethod messageMethod, ref TextDocument document)
+        //{
 
-            using (ResXResourceWriter resx = new ResXResourceWriter(Path.Combine(Path.GetDirectoryName(project.FilePath), Constants.LoggerMessagesResxFolderName, Constants.LoggerMessagesResxFileName)))
-            {
-                resx.AddResource(message.Group.Abbreviation, message.MessageTemplate);
-                resx.Close();
-            }
+        //    using (ResXResourceWriter resx = new ResXResourceWriter(Path.Combine(Path.GetDirectoryName(project.FilePath), Constants.LoggerMessagesResxFolderName, Constants.LoggerMessagesResxFileName)))
+        //    {
+        //        resx.AddResource(messageMethod.Group.Abbreviation, messageMethod.MessageTemplate);
+        //        resx.Close();
+        //    }
 
-            return document.Project;
-        }
+        //    return document.Project;
+        //}
     }
 }

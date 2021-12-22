@@ -107,7 +107,7 @@ namespace LoggerMessageExtension
             var textSelection = dte.ActiveWindow.Selection as EnvDTE.TextSelection;
             loggerPackage.EventGroupService.Solution = ws.CurrentSolution;
 
-            var loggerMessage = LoggerMessage.Shared.LoggerMessage.Create("");
+            var loggerMessage = MessageMethod.Create("");
 
             var lmEditor = new LoggerMessageEditorWindow(loggerPackage, loggerMessage);
             var isCanceled = !lmEditor.ShowModal() ?? true;
@@ -122,13 +122,13 @@ namespace LoggerMessageExtension
 
             var currentDocument = currentProject.GetDocument(activeDocument.Name);
 
-            loggerMessage = lmEditor.Message;
+            loggerMessage = lmEditor.MessageMethod;
 
             currentProject = currentProject.AddResource(loggerMessage, ref resxDocument);
 
             var classDeclaration = currentProject.GetDocument(currentDocument.Id)
-                .GetClassDeclaration(textSelection.CurrentLine, textSelection.CurrentColumn, out var semanticModel);
-            loggerMessage.LoggerVariable = classDeclaration.GetOrCreateLoggerVariable(semanticModel, ref currentDocument);
+                .GetClassDeclaration(textSelection.CurrentLine, textSelection.CurrentColumn);
+            //loggerMessage.LoggerVariable = classDeclaration.GetOrCreateLoggerVariable(semanticModel, ref currentDocument);
             classDeclaration = classDeclaration.AddCall(loggerMessage, textSelection.CurrentLine, textSelection.CurrentColumn, ref currentDocument);
 
             currentProject = currentDocument.Project;
@@ -153,7 +153,7 @@ namespace LoggerMessageExtension
 
             string title = "GetLineNo";
 
-            // Show a message box to prove we were here
+            // Show a messageMethod box to prove we were here
             VsShellUtilities.ShowMessageBox(
                 this.package,
                 message,

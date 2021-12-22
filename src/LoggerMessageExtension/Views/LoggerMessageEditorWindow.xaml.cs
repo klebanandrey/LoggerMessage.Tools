@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using LoggerMessage.Shared;
 using LoggerMessageExtension.Exceptions;
+using LoggerMessages.Roslyn;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 
@@ -15,9 +16,9 @@ namespace LoggerMessageExtension.Views
     {        
         private readonly LoggerMessageExtensionPackage _package;
 
-        public LoggerMessage.Shared.LoggerMessage Message { get; set; }
+        public MessageMethod MessageMethod { get; set; }
 
-        public LoggerMessageEditorWindow(LoggerMessageExtensionPackage package, LoggerMessage.Shared.LoggerMessage message = null)
+        public LoggerMessageEditorWindow(LoggerMessageExtensionPackage package, MessageMethod messageMethod = null)
         {
             InitializeComponent();
             _package = package;
@@ -26,7 +27,7 @@ namespace LoggerMessageExtension.Views
                 ScopesComboBox.ItemsSource = await _package.EventGroupService.GetEventGroupsAsync();
             });
 
-            Message = message;
+            MessageMethod = messageMethod;
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
@@ -34,8 +35,8 @@ namespace LoggerMessageExtension.Views
             if (!_package.EventGroupService.Connected)
                 throw new FailedConnectionException();
 
-            Message.MessageTemplate = MessageTextBox.Text;
-            Message.Group = ScopesComboBox.SelectedItem as IEventGroup;
+            MessageMethod.MessageTemplate = MessageTextBox.Text;
+            MessageMethod.Group = ScopesComboBox.SelectedItem as IEventGroup;
 
             DialogResult = true;
             Close();
@@ -44,7 +45,7 @@ namespace LoggerMessageExtension.Views
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
-            Message = null;
+            MessageMethod = null;
             Close();
         }
 

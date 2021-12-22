@@ -4,12 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:shared="clr-namespace:LoggerMessage.Shared;assembly=LoggerMessage.Shared"
              mc:Ignorable="d" Height="149.6" Width="757.8" Title="LoggerMessage editor" ResizeMode="CanResizeWithGrip">
     <Grid>
         <Button x:Name="CancelButton" Content="Cancel" HorizontalAlignment="Left" Margin="663,82,0,0" VerticalAlignment="Top" Width="75" Click="CancelButton_Click"/>
         <Button x:Name="OkButton" Content="OK" HorizontalAlignment="Left" Margin="583,82,0,0" VerticalAlignment="Top" Width="75" Click="OkButton_Click"/>
-        <TextBox x:Name="MessageTextBox" HorizontalAlignment="Left" Height="23" Margin="87,44,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="652"/>
-        <Label Content="Message" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="MessageTextBox" HorizontalAlignment="Left" Height="23" Margin="280,44,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="459"/>
+        <Label Content="Message&#xD;&#xA;" HorizontalAlignment="Left" Margin="218,43,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="ScopesComboBox" HorizontalAlignment="Left" Margin="87,15,0,0" VerticalAlignment="Top" Width="571" IsEditable="True" IsSynchronizedWithCurrentItem="True">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
@@ -23,5 +25,14 @@
         </ComboBox>
         <Label Content="EventGroup" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <Button x:Name="AddScopeButton" Content="Add..." HorizontalAlignment="Left" Margin="663,14,0,0" VerticalAlignment="Top" Width="75" Height="22" Click="AddScopeButton_Click"/>
+        <ComboBox Name="LevelsComboBox" HorizontalAlignment="Left" Margin="87,45,0,0" VerticalAlignment="Top" Width="120" SelectedIndex="0">
+            <ComboBoxItem Name="Trace" Content="Trace"/>
+            <ComboBoxItem Name="Debug" Content="Debug"/>
+            <ComboBoxItem Name="Information" Content="Information"/>
+            <ComboBoxItem Name="Warning" Content="Warning"/>
+            <ComboBoxItem Name="Error" Content="Error"/>
+            <ComboBoxItem Name="Critical" Content="Critical"/>
+        </ComboBox>
+        <Label Content="Level" HorizontalAlignment="Left" Margin="10,39,0,0" VerticalAlignment="Top"/>
     </Grid>
 </platformUi:DialogWindow>

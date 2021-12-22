@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LoggerMessage.Shared\LoggerMessage.Shared.csproj" />
+    <ProjectReference Include="..\LoggerMessages.Resx\LoggerMessages.Resx.csproj" />
+    <ProjectReference Include="..\LoggerMessages.Roslyn\LoggerMessages.Roslyn.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -23,9 +23,10 @@ namespace EventGroups.Roslyn
             return document.Project;
         }
 
-        public static Document GetDocument(this Project project, string documentName)
+
+        public static Document GetDocument(this Project project, string filePath)
         {
-            return project.Documents.FirstOrDefault(d => d.Name == documentName);
+            return project.Documents.FirstOrDefault(d => d.FilePath == filePath);
         }
     }
 }

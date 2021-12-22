@@ -3,6 +3,7 @@ using System.Windows.Input;
 using LoggerMessage.Shared;
 using LoggerMessage.Shared.Exceptions;
 using LoggerMessage.Shared.Services;
+using LoggerMessageTools.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace LoggerMessageTools.Views
@@ -55,7 +56,7 @@ namespace LoggerMessageTools.Views
 
         private void ScopeAddButton_Click(object sender, RoutedEventArgs e)
         {
-            var eventGroupService = _package.GetServiceAsync(typeof(IEventGroupService)).Result as IEventGroupService;
+            var eventGroupService = _package.GetPackageServiceAsync<IEventGroupService>().Result;
 
             if (!eventGroupService.Connected)
                 throw new FailedConnectionException();

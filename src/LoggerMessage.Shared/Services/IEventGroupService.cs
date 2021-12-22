@@ -14,5 +14,7 @@ namespace LoggerMessage.Shared.Services
         Task<IEnumerable<IEventGroup>> GetEventGroupsAsync();
 
         Task<bool> TryAddEventGroupAsync(EventGroupViewObject newEventGroupViewObject);
+
+        Task<IEventGroup> GetEventGroupAsync(string abbr);
     }
 }
