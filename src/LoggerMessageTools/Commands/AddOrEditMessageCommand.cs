@@ -48,27 +48,21 @@ namespace LoggerMessageTools.Commands
 
             var currentProject = await GetProjectAsync(workspace, fileName);
             var currentDocument = currentProject.GetDocument(fileName);
-            var currentClassDeclaration = currentDocument.GetClassDeclaration(textSelection.CurrentLine, textSelection.CurrentColumn);
 
-            var resxFile = messageService.GetOrCreateLoggerMessagesResx(currentDocument.Project);
-            var extensionsFile = messageService.GetOrCreateLoggerMessagesExtensions(currentDocument.Project);
+            messageService.Initialize(currentProject, currentDocument.Id, textSelection.CurrentLine, textSelection.CurrentColumn);
 
-            var loggerExtensions = LoggerExtensions.Init(extensionsFile);
-
-            var loggerMessage = await messageService.GetLoggerMessage(loggerExtensions, currentClassDeclaration, textSelection.CurrentLine, textSelection.CurrentColumn);
+            var loggerMessage = await messageService.GetLoggerMessage(textSelection.CurrentLine, textSelection.CurrentColumn);
 
             var w = new LoggerMessageEditorWindow(this.Package, new ViewParams(loggerMessage.Abbr, loggerMessage.Level, loggerMessage.MessageTemplate));
             await VS.Windows.ShowDialogAsync(w);
 
-            var invocation = messageService.GetLoggerMessageMethodInvocation(currentDocument, currentClassDeclaration, loggerMessage, loggerExtensions, w.ViewParams);
+            var invocation = messageService.GetLoggerMessageMethodInvocation(loggerMessage, w.ViewParams, out var loggerFieldDeclaration);
 
-            extensionsFile = await loggerExtensions.FillExtensionsFile(extensionsFile);
-            
-            workspace.TryApplyChanges(extensionsFile.Project.Solution);
+            await messageService.WriteExtensionsToFiles();
+            await messageService.AddMessageToResource(loggerMessage);
 
-            currentClassDeclaration = currentClassDeclaration.AddCall(invocation, textSelection.CurrentLine, textSelection.CurrentColumn, ref currentDocument);
-
-            workspace.TryApplyChanges(currentDocument.Project.Solution);
+            messageService.AddInvocation(invocation, loggerFieldDeclaration, textSelection.CurrentLine, textSelection.CurrentColumn);
+            workspace.TryApplyChanges(messageService.CurrentProject.Solution);
         }
     }
 }

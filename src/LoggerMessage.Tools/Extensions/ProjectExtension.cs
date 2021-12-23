@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace LoggerMessage.Tools.Extensions
             {
                 var newDoc = project.AddDocument(Constants.LoggerMessagesExtensionsFileName, Constants.DefaultContent,
                     new[] {Constants.LoggerMessagesFolderName});
-                document = newDoc.WithSyntaxRoot(newDoc.CreateLoggerExtensions());
+                document = newDoc.WithSyntaxRoot(newDoc.CreateExtensionsDocument());
             }
 
             return document.Project;
@@ -35,24 +37,24 @@ namespace LoggerMessage.Tools.Extensions
         public static Project GetOrCreateLoggerMessagesResx(this Project project, out TextDocument document)
         {
             var existFile = project.AdditionalDocuments.FirstOrDefault(d =>
-                d.Name.Equals(LoggerMessage.Shared.Constants.LoggerMessagesResxFileName, StringComparison.OrdinalIgnoreCase));
+                d.Name.Equals(Shared.Constants.LoggerMessagesResxFileName, StringComparison.OrdinalIgnoreCase));
             if (existFile != null)
                 document = existFile;
             else
             {
-                var tmpFilePath = Path.Combine(Path.GetTempPath(), LoggerMessage.Shared.Constants.LoggerMessagesResxFileName);
+                var tmpFilePath = Path.Combine(Path.GetTempPath(), Shared.Constants.LoggerMessagesResxFileName);
                 using (ResXResourceWriter resx = new ResXResourceWriter(tmpFilePath))
                 {
                     resx.Generate();
                     resx.Close();
                 }
 
-                document = project.AddAdditionalDocument(LoggerMessage.Shared.Constants.LoggerMessagesResxFileName,
-                    File.ReadAllText(tmpFilePath), new[] { LoggerMessage.Shared.Constants.LoggerMessagesResxFolderName });
+                document = project.AddAdditionalDocument(Shared.Constants.LoggerMessagesResxFileName,
+                    File.ReadAllText(tmpFilePath), new[] { Shared.Constants.LoggerMessagesResxFolderName });
             }
 
             var csproj = ProjectRootElement.Open(project.FilePath);
-            AddItems(csproj, "EmbeddedResource", $"{LoggerMessage.Shared.Constants.LoggerMessagesResxFolderName}\\{LoggerMessage.Shared.Constants.LoggerMessagesResxFileName}");
+            AddItems(csproj, "EmbeddedResource", $"{Shared.Constants.LoggerMessagesResxFolderName}\\{Shared.Constants.LoggerMessagesResxFileName}");
             csproj.Save();
             return document.Project;
         }
@@ -60,36 +62,29 @@ namespace LoggerMessage.Tools.Extensions
         public static TextDocument GetOrCreateLoggerMessagesResx(this Project project)
         {
             var existFile = project.AdditionalDocuments.FirstOrDefault(d =>
-                d.Name.Equals(LoggerMessage.Shared.Constants.LoggerMessagesResxFileName, StringComparison.OrdinalIgnoreCase));
+                d.Name.Equals(Shared.Constants.LoggerMessagesResxFileName, StringComparison.OrdinalIgnoreCase));
             if (existFile != null)
                 return existFile;
             else
             {
-                var tmpFilePath = Path.Combine(Path.GetTempPath(), LoggerMessage.Shared.Constants.LoggerMessagesResxFileName);
+                var tmpFilePath = Path.Combine(Path.GetTempPath(), Shared.Constants.LoggerMessagesResxFileName);
                 using (ResXResourceWriter resx = new ResXResourceWriter(tmpFilePath))
                 {
                     resx.Generate();
                     resx.Close();
                 }
 
-                return project.AddAdditionalDocument(LoggerMessage.Shared.Constants.LoggerMessagesResxFileName,
-                    File.ReadAllText(tmpFilePath), new[] { LoggerMessage.Shared.Constants.LoggerMessagesResxFolderName });
+                return project.AddAdditionalDocument(Shared.Constants.LoggerMessagesResxFileName,
+                    File.ReadAllText(tmpFilePath), new[] { Shared.Constants.LoggerMessagesResxFolderName });
             }
         }
 
-        public static TextDocument CreateLoggerMessagesResx(this Project project)
+        public static string GetNamespace(this Project project)
         {
-            var tmpFilePath = Path.Combine(Path.GetTempPath(), LoggerMessage.Shared.Constants.LoggerMessagesResxFileName);
-            using (ResXResourceWriter resx = new ResXResourceWriter(tmpFilePath))
-            {
-                resx.Generate();
-                resx.Close();
-            }
-
-            return project.AddAdditionalDocument(LoggerMessage.Shared.Constants.LoggerMessagesResxFileName,
-                File.ReadAllText(tmpFilePath), new[] { LoggerMessage.Shared.Constants.LoggerMessagesResxFolderName });
+            return string.IsNullOrWhiteSpace(project.DefaultNamespace)
+                ? Constants.DefaultNamespace
+                : project.DefaultNamespace;
         }
-
 
         private static void AddItems(ProjectRootElement elem, string groupName, params string[] items)
         {
@@ -102,13 +97,13 @@ namespace LoggerMessage.Tools.Extensions
 
         public static Project GenerateResxClass(this Project project)
         {
-            var filePath = Path.Combine(Path.GetDirectoryName(project.FilePath), LoggerMessage.Shared.Constants.LoggerMessagesResxFolderName, LoggerMessage.Shared.Constants.LoggerMessagesResxFileName);
+            var filePath = Path.Combine(Path.GetDirectoryName(project.FilePath), Shared.Constants.LoggerMessagesResxFolderName, Shared.Constants.LoggerMessagesResxFileName);
 
             try
             {
                 var process = new Process();
                 process.StartInfo.FileName = "resgen";
-                process.StartInfo.Arguments = $"{filePath} /str:cs,{Constants.DefaultNamespace}.Properties";
+                process.StartInfo.Arguments = $"{filePath} /str:cs,{project.GetNamespace()}.Properties";
                 //process.StartInfo.RedirectStandardError = true;
                 //process.StartInfo.RedirectStandardOutput = true;
                 //process.StartInfo.UseShellExecute = false;
@@ -125,7 +120,7 @@ namespace LoggerMessage.Tools.Extensions
                 throw;
             }
 
-            var from = Path.Combine(Path.GetDirectoryName(filePath), LoggerMessage.Shared.Constants.LoggerMessagesFileName);
+            var from = Path.Combine(Path.GetDirectoryName(filePath), Shared.Constants.LoggerMessagesFileName);
             var to = Path.Combine(Path.GetDirectoryName(filePath), $"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs");
             var toDelete = Path.Combine(Path.GetDirectoryName(filePath), $"{Path.GetFileNameWithoutExtension(filePath)}.resources");
 
@@ -141,7 +136,7 @@ namespace LoggerMessage.Tools.Extensions
             File.Move(from, to);
             File.Delete(toDelete);
 
-            return project.AddDocument($"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs", File.ReadAllText(to)).Project;
+            return project.AddDocument($"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs", File.ReadAllText(to), new[] { Shared.Constants.LoggerMessagesResxFolderName }, to).Project;
         }
 
         private static void Process_OutputDataReceived1(object sender, DataReceivedEventArgs e)
@@ -154,16 +149,55 @@ namespace LoggerMessage.Tools.Extensions
             throw new NotImplementedException();
         }
 
-        //public static Project AddResource(this Project project, MessageMethod messageMethod, ref TextDocument document)
-        //{
+        public static Project AddOrUpdateResource(this Project project, MessageMethod messageMethod, ref TextDocument document)
+        {
+            var resx = new List<DictionaryEntry>();
 
-        //    using (ResXResourceWriter resx = new ResXResourceWriter(Path.Combine(Path.GetDirectoryName(project.FilePath), Constants.LoggerMessagesResxFolderName, Constants.LoggerMessagesResxFileName)))
-        //    {
-        //        resx.AddResource(messageMethod.Group.Abbreviation, messageMethod.MessageTemplate);
-        //        resx.Close();
-        //    }
+            if (!File.Exists(document.FilePath))
+            {
+                resx.Add(new DictionaryEntry(messageMethod.Id, messageMethod.MessageTemplate));
+            }
+            else
+            {
+                using (var reader = new ResXResourceReader(document.FilePath))
+                {
+                    resx = reader.Cast<DictionaryEntry>().ToList();
+                    var existingResource = resx.FirstOrDefault(r => r.Key.ToString() == messageMethod.Id);
+                    if (existingResource.Key == null && existingResource.Value == null) // NEW!
+                    {
+                        resx.Add(new DictionaryEntry()
+                            { Key = messageMethod.Id, Value = messageMethod.MessageTemplate });
+                    }
+                    else // MODIFIED RESOURCE!
+                    {
+                        var modifiedResx = new DictionaryEntry()
+                            { Key = existingResource.Key, Value = messageMethod.MessageTemplate };
+                        resx.Remove(existingResource); // REMOVING RESOURCE!
+                        resx.Add(modifiedResx); // AND THEN ADDING RESOURCE!
+                    }
+                }
+            }
 
-        //    return document.Project;
-        //}
+            using (var writer = new ResXResourceWriter(document.FilePath))
+            {
+                foreach (var r in resx)
+                    writer.AddResource(r.Key.ToString(), r.Value.ToString());
+                writer.Generate();
+            }
+
+            project = project.RemoveAdditionalDocument(document.Id);
+            document = project.AddAdditionalDocument(Shared.Constants.LoggerMessagesResxFileName,
+                File.ReadAllText(document.FilePath), new[] { Shared.Constants.LoggerMessagesResxFolderName }, document.FilePath);
+
+            //using (ResXResourceReader resx = new ResXResourceReader(document.FilePath))
+            //{
+            //    foreach (DictionaryEntry d in resx)
+            //    {
+            //        Console.WriteLine(d.Key.ToString() + ":\t" + d.Value.ToString());
+            //    }
+            //}
+
+            return document.Project;
+        }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace LoggerMessage.Tools.Extensions
 {
@@ -35,6 +36,14 @@ namespace LoggerMessage.Tools.Extensions
         public static IEnumerable<TNode> DescendantNodes<TNode>(this SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren = null, bool descendIntoTrivia = false) where TNode : SyntaxNode
         {
             return node.DescendantNodes(descendIntoChildren, descendIntoTrivia).OfType<TNode>();
+        }
+
+        public static NamespaceDeclarationSyntax GetNamespaceDeclaration(this SyntaxNode node)
+        {
+            while (!(node is NamespaceDeclarationSyntax))
+                node = node.Parent;
+
+            return node as NamespaceDeclarationSyntax;
         }
     }
 }

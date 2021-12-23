@@ -9,16 +9,12 @@ namespace LoggerMessage.Tools.Extensions
 {
     public static class DocumentExtensions
     {
-        public static SyntaxNode CreateLoggerExtensions(this Document document)
+        public static SyntaxNode CreateExtensionsDocument(this Document document)
         {
             var root = document.GetSyntaxRootAsync().Result as CompilationUnitSyntax;
             root = root.AddUsings(SF.UsingDirective(SF.ParseName($"{document.Project.Name}.Properties")));
 
-            var nsStr = string.IsNullOrWhiteSpace(document.Project.DefaultNamespace)
-                ? Constants.DefaultNamespace
-                : document.Project.DefaultNamespace;
-
-            var ns = SF.NamespaceDeclaration(SF.ParseName(nsStr));
+            var ns = SF.NamespaceDeclaration(SF.ParseName(document.Project.GetNamespace()));
 
             ns = ns.AddMembers(document.CreateEmptyClassDeclaration());
             return root.AddMembers(ns).NormalizeWhitespace();
@@ -27,7 +23,9 @@ namespace LoggerMessage.Tools.Extensions
         public static ClassDeclarationSyntax CreateEmptyClassDeclaration(this Document document)
         {
             var classDeclaration = SF.ClassDeclaration(Constants.ClassName);
-            return classDeclaration.AddModifiers(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.StaticKeyword)).NormalizeWhitespace();
+            classDeclaration = classDeclaration.AddModifiers(SF.Token(SyntaxKind.PublicKeyword), SF.Token(SyntaxKind.StaticKeyword));
+            classDeclaration = classDeclaration.AddMembers(SF.ConstructorDeclaration(Constants.ClassName).AddModifiers(SF.Token(SyntaxKind.StaticKeyword)));
+            return classDeclaration.NormalizeWhitespace();
         }
 
         public static ClassDeclarationSyntax GetClassDeclaration(this Document document, int rowNumber = 0, int columnNumber = 0)

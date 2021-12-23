@@ -13,11 +13,8 @@ namespace LoggerMessage.Tools
 {
     public class LoggerExtensions
     {
-        public Document Extensions { get; }
-
-        private LoggerExtensions(Document extensions)
+        private LoggerExtensions()
         {
-            Extensions = extensions;
             MessageMethods = new List<MessageMethod>();
         }
 
@@ -34,6 +31,9 @@ namespace LoggerMessage.Tools
 
         private static ExpressionStatementSyntax GetExpression(IEnumerable<ExpressionStatementSyntax> expressions, string id)
         {
+            if (expressions == null)
+                return null;
+
             return expressions.FirstOrDefault(e =>
             {
                 var identifierName = e.Expression.DescendantNodes<IdentifierNameSyntax>().FirstOrDefault();
@@ -50,13 +50,13 @@ namespace LoggerMessage.Tools
 
         public static LoggerExtensions Init(Document extensionsDocument)
         {
-            var extensions = new LoggerExtensions(extensionsDocument);
+            var extensions = new LoggerExtensions();
             var classNodes = extensionsDocument.GetClassDeclaration().DescendantNodes();
 
             var methods = classNodes.OfType<MethodDeclarationSyntax>();
             var fields = classNodes.OfType<FieldDeclarationSyntax>();
-            var expressions = classNodes.OfType<ConstructorDeclarationSyntax>().FirstOrDefault()
-                .DescendantNodes<ExpressionStatementSyntax>();
+            var constructorDeclaration = classNodes.OfType<ConstructorDeclarationSyntax>().FirstOrDefault();
+            var expressions = constructorDeclaration == null ? null : constructorDeclaration.DescendantNodes<ExpressionStatementSyntax>();
 
             foreach (var method in methods)
             {
@@ -86,6 +86,7 @@ namespace LoggerMessage.Tools
                 SF.Argument(SF.IdentifierName("logger"))
             };
             arguments.AddRange(messageMethod.Parameters.Select(p => SF.Argument(SF.IdentifierName(p))));
+            arguments.Add(SF.Argument(SF.IdentifierName("null")));
 
             var methodName = messageMethod.GetMethodName(messageMethod.Id);
 
@@ -109,6 +110,7 @@ namespace LoggerMessage.Tools
         {
             var genericArguments = new List<TypeSyntax> {SF.IdentifierName(Constants.ILoggerTypeName)};
             genericArguments.AddRange(messageMethod.Parameters.Select(p => SF.PredefinedType(SF.Token(SyntaxKind.ObjectKeyword))));
+            genericArguments.Add(SF.IdentifierName("Exception"));
 
             var variableName = $"_{messageMethod.GetMethodName(messageMethod.Id)}";
 
@@ -141,8 +143,9 @@ namespace LoggerMessage.Tools
                                 SF.Argument(SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.ParseToken("17"))),
                                 SF.Argument(SF.InvocationExpression(SF.IdentifierName("nameof"))
                                     .AddArgumentListArguments(
-                                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessages"), SF.IdentifierName(messageMethod.Id))))),
-                                SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessages"), SF.IdentifierName(messageMethod.Id)))))
+                                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessages"), SF.IdentifierName(messageMethod.Id)))))
+                                )),
+                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessages"), SF.IdentifierName(messageMethod.Id)))
                     ))).NormalizeWhitespace();
         }
 
@@ -183,12 +186,17 @@ namespace LoggerMessage.Tools
         {
             var fields = MessageMethods.Select(m => m.FieldDeclaration);
             var methods = MessageMethods.Select(m => m.MethodDeclaration);
+            var expressions = MessageMethods.Select(m => m.ExpressionStatement);
 
             var classDeclaration = extensionsFile.GetClassDeclaration();
             var root = await extensionsFile.GetSyntaxRootAsync();
 
             var newClass = extensionsFile.CreateEmptyClassDeclaration();
             newClass = newClass.AddMembers(fields.ToArray()).AddMembers(methods.ToArray());
+            var constructor = newClass.DescendantNodes<ConstructorDeclarationSyntax>().FirstOrDefault();
+            var newConstructor = constructor.AddBodyStatements(expressions.ToArray());
+
+            newClass = newClass.ReplaceNode(constructor, newConstructor).NormalizeWhitespace();
             root = root.ReplaceNode(classDeclaration, newClass);
             return extensionsFile.WithSyntaxRoot(root);
         }
