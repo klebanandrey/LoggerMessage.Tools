@@ -63,7 +63,11 @@ namespace LoggerMessageTools.Commands
                 var loggerMessage = messageService.GetLoggerMessage(textSelection.CurrentLine, textSelection.CurrentColumn);
 
                 var editorWindow = new LoggerMessageEditorWindow(this.Package, new ViewParams(loggerMessage.Abbr, loggerMessage.Level, loggerMessage.MessageTemplate));
-                await VS.Windows.ShowDialogAsync(editorWindow);
+                var windowResult = await VS.Windows.ShowDialogAsync(editorWindow);
+                if (!windowResult.HasValue)
+                    throw new EditorException("Editor didn't return any result");
+                if (!windowResult.Value)
+                    return;
 
                 var invocation = messageService.GetLoggerMessageMethodInvocation(loggerMessage, editorWindow.ViewParams, out var loggerFieldDeclaration);
 
