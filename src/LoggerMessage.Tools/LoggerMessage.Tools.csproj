@@ -13,8 +13,8 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Build" Version="17.0.0" ExcludeAssets="runtime" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.0.1" />
+		<PackageReference Include="NLog" Version="4.7.13" />
 		<PackageReference Include="ResXResourceReader.NetStandard" Version="1.1.0" />
 	</ItemGroup>
 

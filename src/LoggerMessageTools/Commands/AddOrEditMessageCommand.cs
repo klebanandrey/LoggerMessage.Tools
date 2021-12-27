@@ -2,6 +2,7 @@
 using LoggerMessage.Shared;
 using LoggerMessage.Tools;
 using LoggerMessage.Tools.Extensions;
+using LoggerMessageTools.Exceptions;
 using LoggerMessageTools.Extensions;
 using LoggerMessageTools.Views;
 using Microsoft.CodeAnalysis;
@@ -15,11 +16,13 @@ namespace LoggerMessageTools.Commands
     [Command(PackageIds.AddOrEditMessageCommand)]
     internal sealed class AddOrEditMessageCommand : BaseCommand<AddOrEditMessageCommand>
     {
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         private async Task<Project> GetProjectAsync(Workspace ws, string fileName)
         {
             PhysicalFile file = await PhysicalFile.FromFileAsync(fileName);
-            if (file == null || file.ContainingProject == null)
-                throw new Exception();
+            if (file?.ContainingProject == null)
+                throw new Exception($"File {file} can't be loaded");
 
             return ws.GetProject(file.ContainingProject.Name);
         }
@@ -28,23 +31,25 @@ namespace LoggerMessageTools.Commands
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            Logger.Trace("ExecuteAsync");
+
             try
             {
                 var messageService = await Package.GetPackageServiceAsync<MessageService>();
                 if (messageService == null)
-                    throw new Exception();
+                    throw new ServiceLoadingException(typeof(MessageService));
 
                 var componentModel = await Package.GetPackageServiceAsync<SComponentModel>() as IComponentModel;
                 if (componentModel == null)
-                    throw new Exception();
+                    throw new ServiceLoadingException(typeof(SComponentModel));
 
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
                 if (workspace == null)
-                    throw new Exception();
+                    throw new ServiceLoadingException(typeof(VisualStudioWorkspace));
 
                 var dte = await Package.GetPackageServiceAsync<EnvDTE.DTE>();
                 if (dte == null)
-                    throw new Exception();
+                    throw new ServiceLoadingException(typeof(EnvDTE.DTE));
 
                 var docView = await VS.Documents.GetActiveDocumentViewAsync();
                 string fileName = docView.TextBuffer.GetFileName();
@@ -72,7 +77,7 @@ namespace LoggerMessageTools.Commands
             }
             catch (Exception exception)
             {
-                Console.WriteLine(exception);
+                Logger.Error(exception);
                 throw;
             }
         }

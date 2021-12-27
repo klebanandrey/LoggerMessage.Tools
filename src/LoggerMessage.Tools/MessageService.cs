@@ -14,6 +14,8 @@ namespace LoggerMessage.Tools
 {
     public class MessageService
     {
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         private readonly IEventGroupService _eventGroupService;
 
         private LoggerExtensions _loggerExtensions;

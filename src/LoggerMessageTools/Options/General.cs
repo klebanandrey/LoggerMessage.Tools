@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using LoggerMessage.Shared;
 
 namespace LoggerMessageTools.Options
@@ -34,6 +35,19 @@ namespace LoggerMessageTools.Options
         [DefaultValue("")]
         public string ApiKey { get; set; }
 
+        [Category("Log")]
+        [DisplayName("LogsFolder")]
+        [Description("")]
+        [DefaultValue("")]
+        public string LogsFolder { get; set; } = $"{Path.GetTempPath()}LoggerMessage\\{VS.Solutions.GetCurrentSolution().Name}\\";
+
+        [Category("Log")]
+        [DisplayName("Minimal log level")]
+        [Description("")]
+        [DefaultValue(Level.Off)]
+        [TypeConverter(typeof(EnumConverter))]
+        public Level Level { get; set; }
+
 
         public override void Save()
         {
@@ -43,7 +57,9 @@ namespace LoggerMessageTools.Options
             {
                 { Constants.IsShared, IsShared },
                 { Constants.ServiceUrl, ServiceUrl },
-                { Constants.ApiKey, ApiKey },
+                { Constants.ApiKey, ApiKey},
+                { Constants.LogFolder, LogsFolder },
+                { Constants.Level, Level}
             };
 
             helper.StoreConfiguration(settings);
@@ -55,9 +71,16 @@ namespace LoggerMessageTools.Options
 
             var slnSettings = helper.GetConfiguration();
 
-            IsShared = (bool)slnSettings[Constants.IsShared];
-            ServiceUrl = (string)slnSettings[Constants.ServiceUrl];
-            ApiKey = (string)slnSettings[Constants.ApiKey];
+            if (slnSettings.TryGetValue(Constants.IsShared, out var isShared))
+                IsShared = (bool)isShared;
+            if (slnSettings.TryGetValue(Constants.ServiceUrl, out var serviceUrl))
+                ServiceUrl = (string)serviceUrl;
+            if (slnSettings.TryGetValue(Constants.ApiKey, out var apiKey))
+                ApiKey = (string)apiKey;
+            if (slnSettings.TryGetValue(Constants.LogFolder, out var logFolder))
+                LogsFolder = (string)logFolder;
+            if (slnSettings.TryGetValue(Constants.Level, out var level))
+                Level = (Level)Enum.Parse(typeof(Level), level.ToString());
         }
     }
 }
