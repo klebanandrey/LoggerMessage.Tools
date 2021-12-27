@@ -86,9 +86,6 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.LanguageServices">
-      <HintPath>C:\Users\Asus\.nuget\packages\microsoft.visualstudio.languageservices\4.0.1\lib\net472\Microsoft.VisualStudio.LanguageServices.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="ResGen">

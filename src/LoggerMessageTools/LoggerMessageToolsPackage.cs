@@ -25,8 +25,8 @@ namespace LoggerMessageTools
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await this.RegisterCommandsAsync();
-            this.AddService(typeof(ConfigurationHelper), async (container, token, type) => new ConfigurationHelper(VS.Solutions.GetCurrentSolution().FullPath));
-            this.AddService(typeof(IEventGroupService), async (container, token, type) => EventGroupServiceCreator.Create(VS.Solutions.GetCurrentSolution().FullPath));
+            this.AddService(typeof(ConfigurationHelper), async (container, token, type) => new ConfigurationHelper((await VS.Solutions.GetCurrentSolutionAsync()).FullPath));
+            this.AddService(typeof(IEventGroupService), async (container, token, type) => EventGroupServiceCreator.Create((await VS.Solutions.GetCurrentSolutionAsync()).FullPath));
             this.AddService(typeof(MessageService), async (container, token, type) => new MessageService(await this.GetPackageServiceAsync<IEventGroupService>()));
         }
     }

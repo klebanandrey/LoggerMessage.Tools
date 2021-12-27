@@ -90,7 +90,7 @@ namespace LoggerMessage.Tools
 
             var methodName = messageMethod.GetMethodName(messageMethod.Id);
 
-            var summary = $"/// <summary>\n\t/// {messageMethod.MessageTemplate}\n\t/// </summary>\n\t";
+            var summary = $"{Environment.NewLine}/// <summary>{Environment.NewLine}/// {messageMethod.MessageTemplate}{Environment.NewLine}/// </summary>{Environment.NewLine}";
 
             // Create method
             return SF.MethodDeclaration(SF.ParseName("void"), methodName)
@@ -196,8 +196,8 @@ namespace LoggerMessage.Tools
             var constructor = newClass.DescendantNodes<ConstructorDeclarationSyntax>().FirstOrDefault();
             var newConstructor = constructor.AddBodyStatements(expressions.ToArray());
 
-            newClass = newClass.ReplaceNode(constructor, newConstructor).NormalizeWhitespace();
-            root = root.ReplaceNode(classDeclaration, newClass);
+            newClass = newClass.ReplaceNode(constructor, newConstructor);
+            root = root.ReplaceNode(classDeclaration, newClass).NormalizeWhitespace();
             return extensionsFile.WithSyntaxRoot(root);
         }
     }
