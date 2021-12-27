@@ -38,9 +38,12 @@ namespace LoggerMessage.Tools.Extensions
 
             if (loggerField != null)
             {
-                loggerMemberName = loggerField.Declaration.Variables.OfType<VariableDeclaratorSyntax>().FirstOrDefault().Identifier
-                    .Text;
-                return true;
+                var existVariable = loggerField.Declaration.Variables.OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+                if (existVariable != null)
+                {
+                    loggerMemberName = existVariable.Identifier.Text;
+                    return true;
+                }
             }
 
             loggerMemberName = string.Empty;
@@ -48,31 +51,31 @@ namespace LoggerMessage.Tools.Extensions
         }
 
 
-        public static string GetOrCreateLoggerVariableName(this ClassDeclarationSyntax classDeclaration, SemanticModel model, ref Document document, out FieldDeclarationSyntax loggerFieldDeclaration)
+        public static string GetOrCreateLoggerVariableName(this ClassDeclarationSyntax classDeclaration, SemanticModel model, out FieldDeclarationSyntax loggerFieldDeclaration)
         {
             loggerFieldDeclaration = null;
             if (TryGetExistsLoggerMember(model, classDeclaration, out var loggerVariable))
                 return loggerVariable;
 
             loggerFieldDeclaration = SF.FieldDeclaration(SF.VariableDeclaration(SF.ParseTypeName(Constants.ILoggerTypeName),
-                    SF.SeparatedList(new[] { SF.VariableDeclarator(SF.Identifier("_logger")) })))
+                    SF.SeparatedList(new[] { SF.VariableDeclarator(SF.Identifier(Constants.LoggerVariable)) })))
                 .AddModifiers(SF.Token(SyntaxKind.PrivateKeyword), SF.Token(SyntaxKind.ReadOnlyKeyword));
             return Constants.LoggerVariable;
         }
 
-        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, ExpressionStatementSyntax expression, FieldDeclarationSyntax loggerFieldDecalration, int rowNumber, int columnNumber, ref Document document)
+        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, ExpressionStatementSyntax expression, FieldDeclarationSyntax loggerFieldDeclaration, int rowNumber, int columnNumber, ref Document document)
         {
             var root = classDeclaration.SyntaxTree.GetCompilationUnitRoot();
             var blockSyntax = classDeclaration.DescendantNodes().OfType<BlockSyntax>().LastOrDefault(c =>
                 c.SyntaxTree.GetLineSpan(c.Span).StartLinePosition.Line <= rowNumber &&
                 c.SyntaxTree.GetLineSpan(c.Span).EndLinePosition.Line >= rowNumber);
 
-            var newBlockSyntax = blockSyntax.AddStatements(expression);
+            var newBlockSyntax = blockSyntax.AddStatements(expression.WithLeadingTrivia(blockSyntax.GetLeadingTrivia()));
             
             var newClassDeclaration = classDeclaration.ReplaceNode(blockSyntax, newBlockSyntax);
 
-            if (loggerFieldDecalration != null)
-                newClassDeclaration = newClassDeclaration.AddMembers(loggerFieldDecalration.NormalizeWhitespace());
+            if (loggerFieldDeclaration != null)
+                newClassDeclaration = newClassDeclaration.AddMembers(loggerFieldDeclaration.NormalizeWhitespace());
 
             var loggerMessagesNamespace = document.Project.GetNamespace();
 

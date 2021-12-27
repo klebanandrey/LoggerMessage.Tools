@@ -12,6 +12,7 @@ namespace LoggerMessage.Tools.Extensions
         public static SyntaxNode CreateExtensionsDocument(this Document document)
         {
             var root = document.GetSyntaxRootAsync().Result as CompilationUnitSyntax;
+            root = root.WithLeadingTrivia(SF.ParseLeadingTrivia(Constants.GeneratedCodeNotification));
             root = root.AddUsings(SF.UsingDirective(SF.ParseName($"{document.Project.Name}.Properties")));
 
             var ns = SF.NamespaceDeclaration(SF.ParseName(document.Project.GetNamespace()));

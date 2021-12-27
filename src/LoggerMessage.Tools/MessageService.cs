@@ -22,7 +22,6 @@ namespace LoggerMessage.Tools
 
         private ClassDeclarationSyntax _currentClassDeclaration;
         private DocumentId _extensionsDocumentId;
-        private DocumentId _resxDocumentId;
         public Project CurrentProject { get; private set; }
 
         public MessageService(IEventGroupService eventGroupService)
@@ -36,8 +35,14 @@ namespace LoggerMessage.Tools
             _currentDocumentId = currentDocumentId;
             _currentClassDeclaration = CurrentProject.GetDocument(_currentDocumentId).GetClassDeclaration(rowNumber, columnNumber);
 
-            CurrentProject = GetOrCreateMessagesResx(CurrentProject, out var resxDocument);
-            _resxDocumentId = resxDocument.Id;
+            var projectDir = Path.GetDirectoryName(currentProject.FilePath);
+            //if (!Directory.Exists(Path.Combine(projectDir, Constants.LoggerMessagesFolderName)))
+            //    Directory.CreateDirectory(Path.Combine(projectDir, Constants.LoggerMessagesFolderName));
+
+            if (!Directory.Exists(Path.Combine(projectDir, Constants.LoggerMessagesResxFolderName)))
+                Directory.CreateDirectory(Path.Combine(projectDir, Constants.LoggerMessagesResxFolderName));
+
+            GetOrCreateMessagesResx(CurrentProject);
 
             CurrentProject = GetOrCreateExtensionsDocument(CurrentProject, out var extensionsDocument);
             _extensionsDocumentId = extensionsDocument.Id;
@@ -52,12 +57,11 @@ namespace LoggerMessage.Tools
             CurrentProject = extensionsDocument.Project;
         }
 
-        public async Task AddMessageToResource(MessageMethod message)
+        public void AddMessageToResource(MessageMethod message)
         {
-            var resxDocument = CurrentProject.GetAdditionalDocument(_resxDocumentId);
-            CurrentProject = CurrentProject.AddOrUpdateResource(message, ref resxDocument);
+            CurrentProject.AddOrUpdateResource(message);
 
-            CurrentProject = CurrentProject.GenerateResxClass();
+            CurrentProject.GenerateResxClass();
         }
 
         public Project GetOrCreateExtensionsDocument(Project project, out Document extensionsDocument)
@@ -75,30 +79,21 @@ namespace LoggerMessage.Tools
             return extensionsDocument.Project;
         }
 
-        public static TextDocument CreateMessagesResx(Project project)
+        public static void CreateMessagesResx(string resxFilePath)
         {
-            var tmpFilePath = Path.Combine(Path.GetTempPath(), Shared.Constants.LoggerMessagesResxFileName);
-            using (ResXResourceWriter resx = new ResXResourceWriter(tmpFilePath))
+            using (ResXResourceWriter resx = new ResXResourceWriter(resxFilePath))
             {
                 resx.Generate();
                 resx.Close();
             }
-
-            var realFilePath = Path.Combine(Path.GetDirectoryName(project.FilePath),
-                Shared.Constants.LoggerMessagesResxFolderName, Shared.Constants.LoggerMessagesResxFileName);
-
-            return project.AddAdditionalDocument(Shared.Constants.LoggerMessagesResxFileName,
-                File.ReadAllText(tmpFilePath), new[] { Shared.Constants.LoggerMessagesResxFolderName }, realFilePath);
         }
 
-        public Project GetOrCreateMessagesResx(Project project, out TextDocument resxDocument)
+        public void GetOrCreateMessagesResx(Project project)
         {
-            resxDocument = project.AdditionalDocuments.FirstOrDefault(d =>
-                d.Name.Equals(Shared.Constants.LoggerMessagesResxFileName, StringComparison.OrdinalIgnoreCase));
-            if (resxDocument == null)
-                resxDocument = CreateMessagesResx(project);
+            var resxFilePth = project.GetResxPath();
 
-            return resxDocument.Project;
+            if (!File.Exists(resxFilePth))
+                CreateMessagesResx(resxFilePth);
         }
 
         private ExpressionStatementSyntax GetCurrentNode(ClassDeclarationSyntax classDeclaration, int rowNumber, int columnNumber)
@@ -121,7 +116,7 @@ namespace LoggerMessage.Tools
         }
 
 
-        public async Task<MessageMethod> GetLoggerMessage(int rowNumber, int columnNumber)
+        public MessageMethod GetLoggerMessage(int rowNumber, int columnNumber)
         {
             var currentNode = GetCurrentNode(_currentClassDeclaration, rowNumber, columnNumber);
             MessageMethod result;
@@ -147,9 +142,7 @@ namespace LoggerMessage.Tools
 
             messageMethod = _loggerExtensions.AddOrUpdateMethod(messageMethod, _currentClassDeclaration, viewParams);
 
-            var currentDocument = CurrentProject.GetDocument(_currentDocumentId);
-            var loggerVariable = _currentClassDeclaration.GetOrCreateLoggerVariableName(model, ref currentDocument, out loggerFieldDeclaration);
-            CurrentProject = currentDocument.Project;
+            var loggerVariable = _currentClassDeclaration.GetOrCreateLoggerVariableName(model, out loggerFieldDeclaration);
 
             return messageMethod.GetMethodCallExpression(loggerVariable, messageMethod.Id).NormalizeWhitespace();
         }

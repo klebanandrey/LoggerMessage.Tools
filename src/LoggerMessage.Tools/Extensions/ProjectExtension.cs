@@ -5,78 +5,15 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Resources.NetStandard;
-using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
 
 namespace LoggerMessage.Tools.Extensions
 {
     public static class ProjectExtension
     {
-        public static Project GetOrCreateLoggerMessagesExtensions(this Project project, out Document document)
-        {
-            var existFile = project.Documents.FirstOrDefault(d =>
-                d.Name.Equals(Constants.LoggerMessagesExtensionsFileName, StringComparison.OrdinalIgnoreCase));
-            if (existFile != null)
-                document = existFile;
-            else
-            {
-                var newDoc = project.AddDocument(Constants.LoggerMessagesExtensionsFileName, Constants.DefaultContent,
-                    new[] {Constants.LoggerMessagesFolderName});
-                document = newDoc.WithSyntaxRoot(newDoc.CreateExtensionsDocument());
-            }
-
-            return document.Project;
-        }
-
-
         public static Document GetDocument(this Project project, string filePath)
         {
             return project.Documents.FirstOrDefault(d => d.FilePath == filePath);
-        }
-
-        public static Project GetOrCreateLoggerMessagesResx(this Project project, out TextDocument document)
-        {
-            var existFile = project.AdditionalDocuments.FirstOrDefault(d =>
-                d.Name.Equals(Shared.Constants.LoggerMessagesResxFileName, StringComparison.OrdinalIgnoreCase));
-            if (existFile != null)
-                document = existFile;
-            else
-            {
-                var tmpFilePath = Path.Combine(Path.GetTempPath(), Shared.Constants.LoggerMessagesResxFileName);
-                using (ResXResourceWriter resx = new ResXResourceWriter(tmpFilePath))
-                {
-                    resx.Generate();
-                    resx.Close();
-                }
-
-                document = project.AddAdditionalDocument(Shared.Constants.LoggerMessagesResxFileName,
-                    File.ReadAllText(tmpFilePath), new[] { Shared.Constants.LoggerMessagesResxFolderName });
-            }
-
-            var csproj = ProjectRootElement.Open(project.FilePath);
-            AddItems(csproj, "EmbeddedResource", $"{Shared.Constants.LoggerMessagesResxFolderName}\\{Shared.Constants.LoggerMessagesResxFileName}");
-            csproj.Save();
-            return document.Project;
-        }
-
-        public static TextDocument GetOrCreateLoggerMessagesResx(this Project project)
-        {
-            var existFile = project.AdditionalDocuments.FirstOrDefault(d =>
-                d.Name.Equals(Shared.Constants.LoggerMessagesResxFileName, StringComparison.OrdinalIgnoreCase));
-            if (existFile != null)
-                return existFile;
-            else
-            {
-                var tmpFilePath = Path.Combine(Path.GetTempPath(), Shared.Constants.LoggerMessagesResxFileName);
-                using (ResXResourceWriter resx = new ResXResourceWriter(tmpFilePath))
-                {
-                    resx.Generate();
-                    resx.Close();
-                }
-
-                return project.AddAdditionalDocument(Shared.Constants.LoggerMessagesResxFileName,
-                    File.ReadAllText(tmpFilePath), new[] { Shared.Constants.LoggerMessagesResxFolderName });
-            }
         }
 
         public static string GetNamespace(this Project project)
@@ -86,30 +23,16 @@ namespace LoggerMessage.Tools.Extensions
                 : project.DefaultNamespace;
         }
 
-        private static void AddItems(ProjectRootElement elem, string groupName, params string[] items)
-        {
-            var group = elem.AddItemGroup();
-            foreach (var item in items)
-            {
-                group.AddItem(groupName, item);
-            }
-        }
-
         public static Project GenerateResxClass(this Project project)
         {
-            var filePath = Path.Combine(Path.GetDirectoryName(project.FilePath), Shared.Constants.LoggerMessagesResxFolderName, Shared.Constants.LoggerMessagesResxFileName);
+            var filePath = Path.Combine(Path.GetDirectoryName(project.FilePath), Constants.LoggerMessagesResxFolderName, Constants.LoggerMessagesResxFileName);
 
             try
             {
                 var process = new Process();
                 process.StartInfo.FileName = "resgen";
                 process.StartInfo.Arguments = $"{filePath} /str:cs,{project.GetNamespace()}.Properties";
-                //process.StartInfo.RedirectStandardError = true;
-                //process.StartInfo.RedirectStandardOutput = true;
-                //process.StartInfo.UseShellExecute = false;
-
-                process.ErrorDataReceived += Process_ErrorDataReceived;
-                process.OutputDataReceived += Process_OutputDataReceived1;
+                process.StartInfo.CreateNoWindow = true;
 
                 process.Start();
                 process.WaitForExit();
@@ -120,9 +43,11 @@ namespace LoggerMessage.Tools.Extensions
                 throw;
             }
 
-            var from = Path.Combine(Path.GetDirectoryName(filePath), Shared.Constants.LoggerMessagesFileName);
-            var to = Path.Combine(Path.GetDirectoryName(filePath), $"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs");
-            var toDelete = Path.Combine(Path.GetDirectoryName(filePath), $"{Path.GetFileNameWithoutExtension(filePath)}.resources");
+            var directory = Path.GetDirectoryName(filePath);
+
+            var from = Path.Combine(directory, Constants.LoggerMessagesFileName);
+            var to = Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs");
+            var toDelete = Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(filePath)}.resources");
 
             if (!File.Exists(from))
                 throw new FileNotFoundException($"File {from} can't be found", from);
@@ -136,30 +61,27 @@ namespace LoggerMessage.Tools.Extensions
             File.Move(from, to);
             File.Delete(toDelete);
 
-            return project.AddDocument($"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs", File.ReadAllText(to), new[] { Shared.Constants.LoggerMessagesResxFolderName }, to).Project;
+            return project.AddDocument($"{Path.GetFileNameWithoutExtension(filePath)}.Designer.cs", File.ReadAllText(to), new[] { Constants.LoggerMessagesResxFolderName }, to).Project;
         }
 
-        private static void Process_OutputDataReceived1(object sender, DataReceivedEventArgs e)
+        public static string GetResxPath(this Project project)
         {
-            throw new NotImplementedException();
+            return Path.Combine(Path.GetDirectoryName(project.FilePath), Constants.LoggerMessagesResxFolderName, Constants.LoggerMessagesResxFileName);
         }
 
-        private static void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static Project AddOrUpdateResource(this Project project, MessageMethod messageMethod, ref TextDocument document)
+        public static void AddOrUpdateResource(this Project project, MessageMethod messageMethod)
         {
             var resx = new List<DictionaryEntry>();
 
-            if (!File.Exists(document.FilePath))
+            var resxFilePath = project.GetResxPath();
+
+            if (!File.Exists(resxFilePath))
             {
                 resx.Add(new DictionaryEntry(messageMethod.Id, messageMethod.MessageTemplate));
             }
             else
             {
-                using (var reader = new ResXResourceReader(document.FilePath))
+                using (var reader = new ResXResourceReader(resxFilePath))
                 {
                     resx = reader.Cast<DictionaryEntry>().ToList();
                     var existingResource = resx.FirstOrDefault(r => r.Key.ToString() == messageMethod.Id);
@@ -178,26 +100,12 @@ namespace LoggerMessage.Tools.Extensions
                 }
             }
 
-            using (var writer = new ResXResourceWriter(document.FilePath))
+            using (var writer = new ResXResourceWriter(resxFilePath))
             {
                 foreach (var r in resx)
                     writer.AddResource(r.Key.ToString(), r.Value.ToString());
                 writer.Generate();
             }
-
-            project = project.RemoveAdditionalDocument(document.Id);
-            document = project.AddAdditionalDocument(Shared.Constants.LoggerMessagesResxFileName,
-                File.ReadAllText(document.FilePath), new[] { Shared.Constants.LoggerMessagesResxFolderName }, document.FilePath);
-
-            //using (ResXResourceReader resx = new ResXResourceReader(document.FilePath))
-            //{
-            //    foreach (DictionaryEntry d in resx)
-            //    {
-            //        Console.WriteLine(d.Key.ToString() + ":\t" + d.Value.ToString());
-            //    }
-            //}
-
-            return document.Project;
         }
     }
 }

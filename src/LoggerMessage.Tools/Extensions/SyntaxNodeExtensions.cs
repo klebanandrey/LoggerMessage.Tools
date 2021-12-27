@@ -38,10 +38,14 @@ namespace LoggerMessage.Tools.Extensions
             return node.DescendantNodes(descendIntoChildren, descendIntoTrivia).OfType<TNode>();
         }
 
-        public static NamespaceDeclarationSyntax GetNamespaceDeclaration(this SyntaxNode node)
+        public static NamespaceDeclarationSyntax? GetNamespaceDeclaration(this SyntaxNode node)
         {
             while (!(node is NamespaceDeclarationSyntax))
+            {
+                if (node.Parent == null)
+                    return null;
                 node = node.Parent;
+            }
 
             return node as NamespaceDeclarationSyntax;
         }
