@@ -54,10 +54,15 @@ namespace LoggerMessageTools.Commands
                 var docView = await VS.Documents.GetActiveDocumentViewAsync();
                 string fileName = docView.TextBuffer.GetFileName();
                 var textSelection = dte.ActiveWindow.Selection as EnvDTE.TextSelection;
+                if (textSelection == null)
+                {
+                    await VS.MessageBox.ShowWarningAsync("Selection is empty", "Line 2");
+                    return;
+                }
 
                 var currentProject = await GetProjectAsync(workspace, fileName);
                 var currentDocument = currentProject.GetDocument(fileName);
-                
+
                 messageService.Initialize(currentProject, currentDocument.Id, textSelection.CurrentLine, textSelection.CurrentColumn);
 
                 var loggerMessage = messageService.GetLoggerMessage(textSelection.CurrentLine, textSelection.CurrentColumn, out var currentStatement);
@@ -69,13 +74,14 @@ namespace LoggerMessageTools.Commands
                 if (!windowResult.Value)
                     return;
 
-                var invocation = messageService.GetLoggerMessageMethodInvocation(loggerMessage, editorWindow.ViewParams, out var loggerFieldDeclaration);
+                var invocation = messageService.GenerateLoggerMessageInvocation(loggerMessage, editorWindow.ViewParams, out var loggerFieldDeclaration);
 
                 await messageService.WriteExtensionsToFiles();
 
-                messageService.PrepareCurrentDocument(loggerFieldDeclaration, textSelection.CurrentLine, textSelection.CurrentColumn);
                 if (currentStatement != null)
                     messageService.ReplaceCurrentStatement(currentStatement, invocation);
+                else
+                    messageService.AddLoggerField(loggerFieldDeclaration);
 
                 workspace.TryApplyChanges(messageService.CurrentProject.Solution);
 

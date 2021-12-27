@@ -67,7 +67,7 @@ namespace LoggerMessages.Roslyn.Tests
             var project = solution.Projects.FirstOrDefault(p => p.Name == "TestLoggerMessages");
             var document = project.Documents.FirstOrDefault(d => d.Name == fileName);
 
-            //document.GetOrCreateLoggerVariableName(rowNumber, columnNumber, out var loggerVariable);
+            //document.GetOrCreateLoggerField(rowNumber, columnNumber, out var loggerVariable);
             //Assert.AreEqual(result, loggerVariable);
         }
 

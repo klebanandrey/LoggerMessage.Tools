@@ -7,7 +7,7 @@ namespace LoggerMessage.Tools.Extensions
 {
     public static class LoggerMessageExtensions
     {
-        public static ExpressionStatementSyntax GetMethodCallExpression(this MessageMethod messageMethod, string loggerVariable, string methodId)
+        public static ExpressionStatementSyntax GenerateInvocation(this MessageMethod messageMethod, string loggerVariable)
         {
             var arguments = messageMethod.Parameters.Select(p => SF.Argument(SF.IdentifierName(p)));
 
@@ -15,7 +15,7 @@ namespace LoggerMessage.Tools.Extensions
                 SF.InvocationExpression(
                         SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                                 SF.IdentifierName(loggerVariable),
-                                SF.IdentifierName(messageMethod.GetMethodName(methodId)))
+                                SF.IdentifierName(messageMethod.GetMethodName()))
                             .WithOperatorToken(SF.Token(SyntaxKind.DotToken)))
                     .WithArgumentList(SF.ArgumentList(SF.SeparatedList<ArgumentSyntax>(arguments))
                         .WithOpenParenToken(SF.Token(SyntaxKind.OpenParenToken))

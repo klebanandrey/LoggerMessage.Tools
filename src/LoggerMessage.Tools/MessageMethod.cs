@@ -70,7 +70,7 @@ namespace LoggerMessage.Tools
             return res;
         }
 
-        public string GetMethodName(string methodIdentifier)
+        public string GetMethodName()
         {
             var methodName = _messageTemplate;
 
@@ -83,7 +83,7 @@ namespace LoggerMessage.Tools
             while (methodName.Contains("__"))
                 methodName = methodName.Replace("__", "_");
 
-            return $"{methodIdentifier}_{Level}_{methodName}";
+            return $"{Id}_{Level}_{methodName}";
         }
 
     }

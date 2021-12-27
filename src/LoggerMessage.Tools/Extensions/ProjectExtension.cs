@@ -16,7 +16,7 @@ namespace LoggerMessage.Tools.Extensions
             return project.Documents.FirstOrDefault(d => d.FilePath == filePath);
         }
 
-        public static string GetNamespace(this Project project)
+        public static string GetDefaultNamespace(this Project project)
         {
             return string.IsNullOrWhiteSpace(project.DefaultNamespace)
                 ? Constants.DefaultNamespace
@@ -31,7 +31,7 @@ namespace LoggerMessage.Tools.Extensions
             {
                 var process = new Process();
                 process.StartInfo.FileName = "resgen";
-                process.StartInfo.Arguments = $"{filePath} /str:cs,{project.GetNamespace()}.Properties";
+                process.StartInfo.Arguments = $"{filePath} /str:cs,{project.GetDefaultNamespace()}.Properties";
                 process.StartInfo.CreateNoWindow = true;
 
                 process.Start();

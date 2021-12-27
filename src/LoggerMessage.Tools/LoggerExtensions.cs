@@ -70,7 +70,7 @@ namespace LoggerMessage.Tools
             return extensions;
         }
 
-        private MethodDeclarationSyntax CreateMethodDeclaration(MessageMethod messageMethod, ClassDeclarationSyntax extensionsClass)
+        private MethodDeclarationSyntax CreateMethodDeclaration(MessageMethod messageMethod)
         {
             List<ParameterSyntax> parameters = new List<ParameterSyntax>()
             {
@@ -88,7 +88,7 @@ namespace LoggerMessage.Tools
             arguments.AddRange(messageMethod.Parameters.Select(p => SF.Argument(SF.IdentifierName(p))));
             arguments.Add(SF.Argument(SF.IdentifierName("null")));
 
-            var methodName = messageMethod.GetMethodName(messageMethod.Id);
+            var methodName = messageMethod.GetMethodName();
 
             var summary = $"{Environment.NewLine}/// <summary>{Environment.NewLine}/// {messageMethod.MessageTemplate}{Environment.NewLine}/// </summary>{Environment.NewLine}";
 
@@ -106,13 +106,13 @@ namespace LoggerMessage.Tools
                 .NormalizeWhitespace();
         }
 
-        private FieldDeclarationSyntax CreateFieldDeclaration(MessageMethod messageMethod, ClassDeclarationSyntax extensionsClass)
+        private FieldDeclarationSyntax CreateFieldDeclaration(MessageMethod messageMethod)
         {
             var genericArguments = new List<TypeSyntax> {SF.IdentifierName(Constants.ILoggerTypeName)};
             genericArguments.AddRange(messageMethod.Parameters.Select(p => SF.PredefinedType(SF.Token(SyntaxKind.ObjectKeyword))));
             genericArguments.Add(SF.IdentifierName("Exception"));
 
-            var variableName = $"_{messageMethod.GetMethodName(messageMethod.Id)}";
+            var variableName = $"_{messageMethod.GetMethodName()}";
 
             return SF.FieldDeclaration(SF.VariableDeclaration(SF.GenericName(SF.Identifier("Action")).AddTypeArgumentListArguments(genericArguments.ToArray())))
                 .AddModifiers(
@@ -123,34 +123,42 @@ namespace LoggerMessage.Tools
         }
 
 
-        private ExpressionStatementSyntax CreateExpressionStatement(MessageMethod messageMethod, ClassDeclarationSyntax extensionsClass)
+        private ExpressionStatementSyntax CreateExpressionStatement(MessageMethod messageMethod)
         {
             var genericArguments = new List<TypeSyntax>();
-            genericArguments.AddRange(messageMethod.Parameters.Select(p => SF.PredefinedType(SF.Token(SyntaxKind.ObjectKeyword))));
+            genericArguments.AddRange(
+                messageMethod.Parameters.Select(p => SF.PredefinedType(SF.Token(SyntaxKind.ObjectKeyword))));
 
-            var fieldName = $"_{messageMethod.GetMethodName(messageMethod.Id)}";
+            var fieldName = $"_{messageMethod.GetMethodName()}";
+
+            var memberAccess = messageMethod.Parameters.Count > 0
+                ? SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessage"),
+                    SF.GenericName(SF.Identifier("Define")).AddTypeArgumentListArguments(genericArguments.ToArray()))
+                : SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessage"),
+                    SF.IdentifierName("Define"));
 
             return SF.ExpressionStatement(SF.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
                 SF.IdentifierName(fieldName),
-                SF.InvocationExpression(
-                        SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessage"),
-                            SF.GenericName(SF.Identifier("Define"))
-                                .AddTypeArgumentListArguments(genericArguments.ToArray())))
+                SF.InvocationExpression(memberAccess)
                     .AddArgumentListArguments(
-                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LogLevel"), SF.IdentifierName("Error"))),
+                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            SF.IdentifierName("LogLevel"), SF.IdentifierName("Error"))),
                         SF.Argument(SF.ObjectCreationExpression(SF.IdentifierName("EventId"))
                             .AddArgumentListArguments(
-                                SF.Argument(SF.LiteralExpression(SyntaxKind.NumericLiteralExpression, SF.ParseToken("17"))),
+                                SF.Argument(SF.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                    SF.ParseToken("17"))),
                                 SF.Argument(SF.InvocationExpression(SF.IdentifierName("nameof"))
                                     .AddArgumentListArguments(
-                                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessages"), SF.IdentifierName(messageMethod.Id)))))
-                                )),
-                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SF.IdentifierName("LoggerMessages"), SF.IdentifierName(messageMethod.Id)))
+                                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            SF.IdentifierName("LoggerMessages"), SF.IdentifierName(messageMethod.Id)))))
+                            )),
+                        SF.Argument(SF.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            SF.IdentifierName("LoggerMessages"), SF.IdentifierName(messageMethod.Id)))
                     ))).NormalizeWhitespace();
         }
 
 
-        public MessageMethod AddOrUpdateMethod(MessageMethod messageMethod, ClassDeclarationSyntax classDeclaration,
+        public MessageMethod AddOrUpdateMessageMethod(MessageMethod messageMethod, ClassDeclarationSyntax classDeclaration,
             ViewParams viewParams)
         {
             var existsMethod = MessageMethods.FirstOrDefault(m => m.Id == $"{viewParams.OldAbbr}{messageMethod.Number:D5}");
@@ -163,9 +171,9 @@ namespace LoggerMessage.Tools
                     existsMethod.MessageTemplate = viewParams.NewTemplate;
                     existsMethod.Abbr = viewParams.NewAbbr;
                     existsMethod.Level = viewParams.NewLevel;
-                    existsMethod.MethodDeclaration = CreateMethodDeclaration(messageMethod, classDeclaration);
-                    existsMethod.FieldDeclaration = CreateFieldDeclaration(messageMethod, classDeclaration);
-                    existsMethod.ExpressionStatement = CreateExpressionStatement(messageMethod, classDeclaration);
+                    existsMethod.MethodDeclaration = CreateMethodDeclaration(messageMethod);
+                    existsMethod.FieldDeclaration = CreateFieldDeclaration(messageMethod);
+                    existsMethod.ExpressionStatement = CreateExpressionStatement(messageMethod);
                 }
                 return existsMethod;
             }
@@ -175,9 +183,9 @@ namespace LoggerMessage.Tools
             messageMethod.MessageTemplate = viewParams.NewTemplate;
             messageMethod.Abbr = viewParams.NewAbbr;
             messageMethod.Level = viewParams.NewLevel;
-            messageMethod.MethodDeclaration = CreateMethodDeclaration(messageMethod, classDeclaration);
-            messageMethod.FieldDeclaration = CreateFieldDeclaration(messageMethod, classDeclaration);
-            messageMethod.ExpressionStatement = CreateExpressionStatement(messageMethod, classDeclaration);
+            messageMethod.MethodDeclaration = CreateMethodDeclaration(messageMethod);
+            messageMethod.FieldDeclaration = CreateFieldDeclaration(messageMethod);
+            messageMethod.ExpressionStatement = CreateExpressionStatement(messageMethod);
             MessageMethods.Add(messageMethod);
             return messageMethod;
         }

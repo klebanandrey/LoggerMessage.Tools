@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,17 +19,14 @@ namespace LoggerMessage.Tools.Extensions
             return ti.Name == Constants.ILoggerTypeName;
         }
 
-
-        private static bool TryGetExistsLoggerMember(SemanticModel model, ClassDeclarationSyntax classDeclaration, out string loggerMemberName)
+        public static string GetOrCreateLoggerField(this ClassDeclarationSyntax classDeclaration, SemanticModel model, out FieldDeclarationSyntax loggerFieldDeclaration)
         {
-            var loggerProperty = classDeclaration.DescendantNodes().OfType<PropertyDeclarationSyntax>()
+            loggerFieldDeclaration = null;
+            var loggerProperty = classDeclaration.DescendantNodes<PropertyDeclarationSyntax>()
                 .FirstOrDefault(p => IsLoggerSymbol(p.Type, model));
 
             if (loggerProperty != null)
-            {
-                loggerMemberName = loggerProperty.Identifier.Text;
-                return true;
-            }
+                return loggerProperty.Identifier.Text;
 
             var loggerField = classDeclaration.DescendantNodes().OfType<FieldDeclarationSyntax>()
                 .FirstOrDefault(f => IsLoggerSymbol(f.Declaration.Type, model));
@@ -40,63 +35,13 @@ namespace LoggerMessage.Tools.Extensions
             {
                 var existVariable = loggerField.Declaration.Variables.OfType<VariableDeclaratorSyntax>().FirstOrDefault();
                 if (existVariable != null)
-                {
-                    loggerMemberName = existVariable.Identifier.Text;
-                    return true;
-                }
+                    return existVariable.Identifier.Text;
             }
-
-            loggerMemberName = string.Empty;
-            return false;
-        }
-
-
-        public static string GetOrCreateLoggerVariableName(this ClassDeclarationSyntax classDeclaration, SemanticModel model, out FieldDeclarationSyntax loggerFieldDeclaration)
-        {
-            loggerFieldDeclaration = null;
-            if (TryGetExistsLoggerMember(model, classDeclaration, out var loggerVariable))
-                return loggerVariable;
 
             loggerFieldDeclaration = SF.FieldDeclaration(SF.VariableDeclaration(SF.ParseTypeName(Constants.ILoggerTypeName),
                     SF.SeparatedList(new[] { SF.VariableDeclarator(SF.Identifier(Constants.LoggerVariable)) })))
                 .AddModifiers(SF.Token(SyntaxKind.PrivateKeyword), SF.Token(SyntaxKind.ReadOnlyKeyword));
             return Constants.LoggerVariable;
-        }
-
-        public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, ExpressionStatementSyntax expression, FieldDeclarationSyntax loggerFieldDeclaration, int rowNumber, int columnNumber, ref Document document)
-        {
-            var root = classDeclaration.SyntaxTree.GetCompilationUnitRoot();
-            //var blockSyntax = classDeclaration.DescendantNodes().OfType<BlockSyntax>().LastOrDefault(c =>
-            //    c.SyntaxTree.GetLineSpan(c.Span).StartLinePosition.Line <= rowNumber &&
-            //    c.SyntaxTree.GetLineSpan(c.Span).EndLinePosition.Line >= rowNumber);
-
-            //var newBlockSyntax = blockSyntax.AddStatements(expression.WithLeadingTrivia(blockSyntax.GetLeadingTrivia()));
-
-            var newClassDeclaration = classDeclaration;
-
-            if (loggerFieldDeclaration != null)
-                newClassDeclaration = classDeclaration.AddMembers(loggerFieldDeclaration.NormalizeWhitespace());
-
-            var loggerMessagesNamespace = document.Project.GetNamespace();
-
-            root = root.ReplaceNode(classDeclaration, newClassDeclaration);
-
-            var usingDirectives = new List<UsingDirectiveSyntax>();
-
-            if (root.Usings.All(u => u.Name.ToString() != SF.ParseName(Constants.ILoggerModuleNamespace).ToString()))
-                usingDirectives.Add(SF.UsingDirective(SF.ParseName(Constants.ILoggerModuleNamespace)).NormalizeWhitespace()
-                    .WithTrailingTrivia(SF.EndOfLine(Environment.NewLine)));
-
-            if (classDeclaration.GetNamespaceDeclaration().Name.ToString() != loggerMessagesNamespace &&
-                root.Usings.All(u => u.Name.ToString() != SF.ParseName(loggerMessagesNamespace).ToString()))
-                usingDirectives.Add(SF.UsingDirective(SF.ParseName(loggerMessagesNamespace)).NormalizeWhitespace()
-                    .WithTrailingTrivia(SF.EndOfLine(Environment.NewLine))); 
-
-            root = root.AddUsings(usingDirectives.ToArray());
-
-            document = document.WithSyntaxRoot(root);
-
-            return newClassDeclaration;
         }
     }
 }

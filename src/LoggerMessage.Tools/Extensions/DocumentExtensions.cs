@@ -15,7 +15,7 @@ namespace LoggerMessage.Tools.Extensions
             root = root.WithLeadingTrivia(SF.ParseLeadingTrivia(Constants.GeneratedCodeNotification));
             root = root.AddUsings(SF.UsingDirective(SF.ParseName($"{document.Project.Name}.Properties")));
 
-            var ns = SF.NamespaceDeclaration(SF.ParseName(document.Project.GetNamespace()));
+            var ns = SF.NamespaceDeclaration(SF.ParseName(document.Project.GetDefaultNamespace()));
 
             ns = ns.AddMembers(document.CreateEmptyClassDeclaration());
             return root.AddMembers(ns).NormalizeWhitespace();
@@ -34,8 +34,8 @@ namespace LoggerMessage.Tools.Extensions
             var root = document.GetSyntaxRootAsync().Result as CompilationUnitSyntax;
 
             var classDeclaration = (rowNumber == 0 && columnNumber == 0) 
-                ? root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault()
-                : root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault(c => c.InsideNode(rowNumber, columnNumber));
+                ? root.DescendantNodes<ClassDeclarationSyntax>().FirstOrDefault()
+                : root.DescendantNodes<ClassDeclarationSyntax>().FirstOrDefault(c => c.InsideNode(rowNumber, columnNumber));
 
             if (classDeclaration == null)
                 throw new WrongPositionException();
