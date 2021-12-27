@@ -14,7 +14,8 @@ namespace LoggerMessage.Tools.Extensions
             var lineSpan = node.SyntaxTree.GetLineSpan(node.Span);
             rowNumber--;
 
-            if (lineSpan.StartLinePosition.Line < rowNumber && lineSpan.EndLinePosition.Line > rowNumber)
+            if ((lineSpan.StartLinePosition.Line <= rowNumber && lineSpan.EndLinePosition.Line > rowNumber) ||
+                (lineSpan.StartLinePosition.Line < rowNumber && lineSpan.EndLinePosition.Line >= rowNumber))
                 return true;
 
             if (lineSpan.StartLinePosition.Line == rowNumber &&

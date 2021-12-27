@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Resources.NetStandard;
@@ -9,6 +10,7 @@ using LoggerMessage.Tools.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using SF = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace LoggerMessage.Tools
 {
@@ -106,7 +108,13 @@ namespace LoggerMessage.Tools
 
         private string GetMethodIdFromCurrentInvocation(ExpressionStatementSyntax expressionNode)
         {
+            if (expressionNode == null)
+                return string.Empty;
+
             var memberAccess = expressionNode.DescendantNodes<MemberAccessExpressionSyntax>().FirstOrDefault();
+            if (memberAccess == null)
+                return string.Empty;
+
             var methodName = memberAccess.Name.ToString();
             return methodName.Split('_')[0];
         }
@@ -118,17 +126,22 @@ namespace LoggerMessage.Tools
         }
 
 
-        public MessageMethod GetLoggerMessage(int rowNumber, int columnNumber)
+        public MessageMethod GetLoggerMessage(int rowNumber, int columnNumber, out ExpressionStatementSyntax currentStatement)
         {
-            var currentNode = GetCurrentNode(_currentClassDeclaration, rowNumber, columnNumber);
+            var currentExpression = GetCurrentNode(_currentClassDeclaration, rowNumber, columnNumber);
             MessageMethod result;
 
-            if (currentNode == null || string.IsNullOrEmpty(GetMethodIdFromCurrentInvocation(currentNode)))
+            var methodId = GetMethodIdFromCurrentInvocation(currentExpression);
+
+            if (string.IsNullOrEmpty(methodId))
+            {
                 result = MessageMethod.Create("", "");
+                currentStatement = null;
+            }
             else
             {
-                var methodId = GetMethodIdFromCurrentInvocation(currentNode);
                 result = _loggerExtensions.MessageMethods.FirstOrDefault(m => m.Id == methodId);
+                currentStatement = currentExpression;
             }
 
             return result;
@@ -149,11 +162,44 @@ namespace LoggerMessage.Tools
             return messageMethod.GetMethodCallExpression(loggerVariable, messageMethod.Id).NormalizeWhitespace();
         }
 
-        public void AddInvocation(ExpressionStatementSyntax expression, FieldDeclarationSyntax loggerFieldDeclaration, int rowNumber, int columnNumber)
+        public void PrepareCurrentDocument(FieldDeclarationSyntax loggerFieldDeclaration, int rowNumber, int columnNumber)
         {
             var currentDocument = CurrentProject.GetDocument(_currentDocumentId);
             var currentClassDeclaration = currentDocument.GetClassDeclaration(rowNumber, columnNumber);
-            _currentClassDeclaration = currentClassDeclaration.AddCall(expression, loggerFieldDeclaration, rowNumber, columnNumber, ref currentDocument);
+
+            if (loggerFieldDeclaration != null)
+                _currentClassDeclaration = currentClassDeclaration.AddMembers(loggerFieldDeclaration.NormalizeWhitespace());
+
+            var loggerMessagesNamespace = currentDocument.Project.GetNamespace();
+
+            var root = currentClassDeclaration.SyntaxTree.GetCompilationUnitRoot();
+
+            root = root.ReplaceNode(currentClassDeclaration, _currentClassDeclaration);
+
+            var usingDirectives = new List<UsingDirectiveSyntax>();
+
+            if (root.Usings.All(u => u.Name.ToString() != SF.ParseName(Constants.ILoggerModuleNamespace).ToString()))
+                usingDirectives.Add(SF.UsingDirective(SF.ParseName(Constants.ILoggerModuleNamespace)).NormalizeWhitespace()
+                    .WithTrailingTrivia(SF.EndOfLine(Environment.NewLine)));
+
+            if (currentClassDeclaration.GetNamespaceDeclaration().Name.ToString() != loggerMessagesNamespace &&
+                root.Usings.All(u => u.Name.ToString() != SF.ParseName(loggerMessagesNamespace).ToString()))
+                usingDirectives.Add(SF.UsingDirective(SF.ParseName(loggerMessagesNamespace)).NormalizeWhitespace()
+                    .WithTrailingTrivia(SF.EndOfLine(Environment.NewLine)));
+
+            root = root.AddUsings(usingDirectives.ToArray());
+
+            currentDocument = currentDocument.WithSyntaxRoot(root);
+            CurrentProject = currentDocument.Project;
+        }
+
+        public void ReplaceCurrentStatement(ExpressionStatementSyntax oldStatement, ExpressionStatementSyntax newStatement)
+        {
+            var currentDocument = CurrentProject.GetDocument(_currentDocumentId);
+            var root = oldStatement.SyntaxTree.GetCompilationUnitRoot();
+
+            root = root.ReplaceNode(oldStatement, newStatement.WithLeadingTrivia(oldStatement.GetLeadingTrivia()).WithTrailingTrivia(oldStatement.GetTrailingTrivia()));
+            currentDocument = currentDocument.WithSyntaxRoot(root);
             CurrentProject = currentDocument.Project;
         }
     }

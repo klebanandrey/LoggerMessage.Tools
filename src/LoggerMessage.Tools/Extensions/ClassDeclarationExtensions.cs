@@ -66,16 +66,16 @@ namespace LoggerMessage.Tools.Extensions
         public static ClassDeclarationSyntax AddCall(this ClassDeclarationSyntax classDeclaration, ExpressionStatementSyntax expression, FieldDeclarationSyntax loggerFieldDeclaration, int rowNumber, int columnNumber, ref Document document)
         {
             var root = classDeclaration.SyntaxTree.GetCompilationUnitRoot();
-            var blockSyntax = classDeclaration.DescendantNodes().OfType<BlockSyntax>().LastOrDefault(c =>
-                c.SyntaxTree.GetLineSpan(c.Span).StartLinePosition.Line <= rowNumber &&
-                c.SyntaxTree.GetLineSpan(c.Span).EndLinePosition.Line >= rowNumber);
+            //var blockSyntax = classDeclaration.DescendantNodes().OfType<BlockSyntax>().LastOrDefault(c =>
+            //    c.SyntaxTree.GetLineSpan(c.Span).StartLinePosition.Line <= rowNumber &&
+            //    c.SyntaxTree.GetLineSpan(c.Span).EndLinePosition.Line >= rowNumber);
 
-            var newBlockSyntax = blockSyntax.AddStatements(expression.WithLeadingTrivia(blockSyntax.GetLeadingTrivia()));
-            
-            var newClassDeclaration = classDeclaration.ReplaceNode(blockSyntax, newBlockSyntax);
+            //var newBlockSyntax = blockSyntax.AddStatements(expression.WithLeadingTrivia(blockSyntax.GetLeadingTrivia()));
+
+            var newClassDeclaration = classDeclaration;
 
             if (loggerFieldDeclaration != null)
-                newClassDeclaration = newClassDeclaration.AddMembers(loggerFieldDeclaration.NormalizeWhitespace());
+                newClassDeclaration = classDeclaration.AddMembers(loggerFieldDeclaration.NormalizeWhitespace());
 
             var loggerMessagesNamespace = document.Project.GetNamespace();
 

@@ -50,7 +50,7 @@ namespace LoggerMessageTools.Commands
                 var dte = await Package.GetPackageServiceAsync<EnvDTE.DTE>();
                 if (dte == null)
                     throw new ServiceLoadingException(typeof(EnvDTE.DTE));
-
+                
                 var docView = await VS.Documents.GetActiveDocumentViewAsync();
                 string fileName = docView.TextBuffer.GetFileName();
                 var textSelection = dte.ActiveWindow.Selection as EnvDTE.TextSelection;
@@ -60,7 +60,7 @@ namespace LoggerMessageTools.Commands
                 
                 messageService.Initialize(currentProject, currentDocument.Id, textSelection.CurrentLine, textSelection.CurrentColumn);
 
-                var loggerMessage = messageService.GetLoggerMessage(textSelection.CurrentLine, textSelection.CurrentColumn);
+                var loggerMessage = messageService.GetLoggerMessage(textSelection.CurrentLine, textSelection.CurrentColumn, out var currentStatement);
 
                 var editorWindow = new LoggerMessageEditorWindow(this.Package, new ViewParams(loggerMessage.Abbr, loggerMessage.Level, loggerMessage.MessageTemplate));
                 var windowResult = await VS.Windows.ShowDialogAsync(editorWindow);
@@ -73,11 +73,20 @@ namespace LoggerMessageTools.Commands
 
                 await messageService.WriteExtensionsToFiles();
 
-                messageService.AddInvocation(invocation, loggerFieldDeclaration, textSelection.CurrentLine, textSelection.CurrentColumn);
+                messageService.PrepareCurrentDocument(loggerFieldDeclaration, textSelection.CurrentLine, textSelection.CurrentColumn);
+                if (currentStatement != null)
+                    messageService.ReplaceCurrentStatement(currentStatement, invocation);
 
                 workspace.TryApplyChanges(messageService.CurrentProject.Solution);
 
                 messageService.AddMessageToResource(loggerMessage);
+
+                if (currentStatement == null)
+                {
+                    var textView = docView.TextView;
+                    SnapshotPoint caretPosition = textView.Caret.Position.BufferPosition;
+                    textView.TextBuffer.Insert(caretPosition, invocation.ToFullString());
+                }
             }
             catch (Exception exception)
             {
